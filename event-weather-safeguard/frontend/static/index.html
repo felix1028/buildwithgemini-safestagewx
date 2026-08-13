@@ -454,9 +454,15 @@
     <span class="material-symbols-outlined icon">bolt</span>
     <span>SafeStageWX</span>
   </div>
-  <div class="loc-badge">
-    <span class="dot"></span>
-    <span>Wilmington Island, GA 32.001° N</span>
+  <div style="display: flex; align-items: center; gap: 0.5rem;">
+    <button onclick="openEventSetupModal()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.2rem;">
+      <span class="material-symbols-outlined" style="font-size: 0.9rem;">tune</span>
+      Configure Event
+    </button>
+    <div class="loc-badge">
+      <span class="dot"></span>
+      <span id="hdr-loc-badge">Savannah, GA 32.001° N</span>
+    </div>
   </div>
 </header>
 
@@ -505,7 +511,7 @@
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">
-        <span>⭐ 501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)</span>
+        <span id="venue-address-display">⭐ 501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)</span>
         <button onclick="document.getElementById('radar-iframe').src=document.getElementById('radar-iframe').src" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:0.75rem; display:flex; align-items:center; gap:0.2rem;">
           <span class="material-symbols-outlined" style="font-size:0.9rem;">refresh</span>
           Refresh Radar
@@ -522,10 +528,10 @@
         </span>
         <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">Live NWS Sync</span>
       </div>
-      <div class="status-title">Wilmington Island Venue (Savannah, GA)</div>
-      <div class="status-sub">501 Wilmington Island Rd • Aug 13, 2026 ~6:30 PM EDT • 100 Guests</div>
+      <div class="status-title" id="banner-event-title">Wilmington Island Venue (Savannah, GA)</div>
+      <div class="status-sub" id="banner-event-sub">501 Wilmington Island Rd • Aug 13, 2026 ~6:30 PM EDT • 100 Guests</div>
       <div id="active-alerts-list" style="margin-top: 0.5rem; font-size: 0.82rem; color: #fecaca; background: rgba(0,0,0,0.3); padding: 0.4rem 0.6rem; border-radius: 8px;">
-        🚨 <strong>Active Warnings at Coordinates (32.001° N, -80.974° W):</strong> Severe Thunderstorm Warning • Extreme Heat Warning
+        🚨 <strong>Active NWS Warnings at Venue (32.001° N, -80.974° W):</strong> Severe Thunderstorm Warning • Extreme Heat Warning
       </div>
     </div>
 
@@ -678,6 +684,52 @@
   </div>
 </div>
 
+<!-- First Interaction Event Setup Onboarding Modal -->
+<div class="modal-overlay" id="event-setup-modal" style="display: flex;">
+  <div class="modal-content" style="max-width: 440px;">
+    <div style="font-weight: 800; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+      <span class="material-symbols-outlined" style="color: var(--accent); font-size: 1.6rem;">event_available</span>
+      Configure Your Event
+    </div>
+    <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+      Please enter your event details to generate the event safety profile, powered by weather radar, meteorologist forecasts, and current weather warnings.
+    </div>
+
+    <form onsubmit="handleEventSetupSubmit(event)" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
+      <div>
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EVENT NAME / TYPE</label>
+        <input type="text" id="setup-title" class="tool-input" style="width: 100%; box-sizing: border-box;" value="Wilmington Island Reception" placeholder="e.g. Wedding, Concert, Festival" required>
+      </div>
+
+      <div>
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">VENUE ADDRESS / LOCATION</label>
+        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="501 Wilmington Island Road, Savannah, GA" placeholder="e.g. Street Address, City, State" required>
+      </div>
+
+      <div style="display: flex; gap: 0.6rem;">
+        <div style="flex: 1;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EVENT DATE</label>
+          <input type="date" id="setup-date" class="tool-input" style="width: 100%; box-sizing: border-box;" value="2026-08-13" required>
+        </div>
+        <div style="flex: 1;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">START TIME</label>
+          <input type="time" id="setup-time" class="tool-input" style="width: 100%; box-sizing: border-box;" value="18:30" required>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EXPECTED ATTENDEES</label>
+        <input type="number" id="setup-guests" class="tool-input" style="width: 100%; box-sizing: border-box;" value="100" placeholder="Number of guests" required>
+      </div>
+
+      <button type="submit" id="setup-submit-btn" class="btn-primary" style="margin-top: 0.4rem; padding: 0.75rem; justify-content: center; font-size: 0.95rem;">
+        <span class="material-symbols-outlined">bolt</span>
+        Start Weather Safeguard
+      </button>
+    </form>
+  </div>
+</div>
+
 <script>
   function switchTab(paneId, btnEl) {
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
@@ -733,10 +785,82 @@
     modal.style.display = 'flex';
   }
 
-  // Live NWS Alert Polygon Checker for Coordinates (32.0008, -80.9735)
-  async function checkLiveNWSAlerts() {
+  // Onboarding Event Setup Modal Functions
+  function openEventSetupModal() {
+    document.getElementById('event-setup-modal').style.display = 'flex';
+  }
+
+  function closeEventSetupModal() {
+    document.getElementById('event-setup-modal').style.display = 'none';
+  }
+
+  let currentLat = 32.0008;
+  let currentLon = -80.9735;
+  let currentVenueAddress = "501 Wilmington Island Road, Savannah, GA";
+
+  async function handleEventSetupSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const btn = document.getElementById('setup-submit-btn');
+    btn.innerHTML = `<span class="material-symbols-outlined">sync</span> Resolving Geocode & Radar...`;
+    btn.disabled = true;
+
+    const title = document.getElementById('setup-title').value.trim();
+    const address = document.getElementById('setup-address').value.trim();
+    const date = document.getElementById('setup-date').value;
+    const time = document.getElementById('setup-time').value;
+    const guests = parseInt(document.getElementById('setup-guests').value) || 100;
+
+    currentVenueAddress = address;
+
+    // OpenStreetMap Nominatim Geocoding API
     try {
-      const res = await fetch('https://api.weather.gov/alerts/active?point=32.0008,-80.9735', {
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+      if (geoRes.ok) {
+        const geoData = await geoRes.json();
+        if (geoData && geoData.length > 0) {
+          currentLat = parseFloat(geoData[0].lat);
+          currentLon = parseFloat(geoData[0].lon);
+        }
+      }
+    } catch (err) {
+      console.log('Geocoding offline or network error, using default/fallback coordinates');
+    }
+
+    // Update Header Badge
+    document.getElementById('hdr-loc-badge').innerText = `${address.split(',')[0]} (${currentLat.toFixed(3)}° N)`;
+
+    // Update Venue Address Display
+    document.getElementById('venue-address-display').innerText = `⭐ ${address} (${currentLat.toFixed(3)}° N, ${currentLon.toFixed(3)}° W)`;
+
+    // Update Radar Iframe
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+      radarIframe.src = `https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},9&oScheme=2&settings=1&base=1&radar=1&colors=1&theme=dark`;
+    }
+
+    // Update Status Banner
+    document.getElementById('banner-event-title').innerText = `${title} (${address.split(',')[0]})`;
+    document.getElementById('banner-event-sub').innerText = `${address} • ${date} @ ${time} • ${guests} Guests`;
+
+    // Update Attendee Count in Lead Time Calculator & recalculate
+    document.getElementById('attendees-count').value = guests;
+    calculateEvacTime();
+
+    // Check Live NWS Alerts for newly resolved coordinates
+    await checkLiveNWSAlerts(currentLat, currentLon);
+
+    // Save in LocalStorage
+    localStorage.setItem('safestagewx_event', JSON.stringify({ title, address, date, time, guests, lat: currentLat, lon: currentLon }));
+
+    btn.innerHTML = `<span class="material-symbols-outlined">bolt</span> Start Weather Safeguard`;
+    btn.disabled = false;
+    closeEventSetupModal();
+  }
+
+  // Live NWS Alert Polygon Checker for Coordinates
+  async function checkLiveNWSAlerts(lat = currentLat, lon = currentLon) {
+    try {
+      const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`, {
         headers: { 'User-Agent': 'SafeStageWX (event-weather-safeguard)' }
       });
       if (!res.ok) return;
@@ -756,7 +880,7 @@
         bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">warning</span> ⚠️ WARNING POLYGON ACTIVE`;
         
         if (alertsList) {
-          alertsList.innerHTML = `🚨 <strong>Active NWS Warnings at Venue (32.001° N, -80.974° W):</strong> ${eventSummary}`;
+          alertsList.innerHTML = `🚨 <strong>Active NWS Warnings at Venue (${lat.toFixed(3)}° N, ${lon.toFixed(3)}° W):</strong> ${eventSummary}`;
         }
         if (mdStatus) {
           mdStatus.style.color = '#ef4444';
@@ -781,7 +905,29 @@
     }
   }
 
-  window.addEventListener('DOMContentLoaded', checkLiveNWSAlerts);
+  // Auto-load saved event or show onboarding modal on first visit
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('safestagewx_event');
+    if (saved) {
+      try {
+        const evt = JSON.parse(saved);
+        document.getElementById('setup-title').value = evt.title || '';
+        document.getElementById('setup-address').value = evt.address || '';
+        document.getElementById('setup-date').value = evt.date || '';
+        document.getElementById('setup-time').value = evt.time || '';
+        document.getElementById('setup-guests').value = evt.guests || 100;
+        if (evt.lat && evt.lon) {
+          currentLat = evt.lat;
+          currentLon = evt.lon;
+        }
+        handleEventSetupSubmit();
+      } catch (e) {
+        openEventSetupModal();
+      }
+    } else {
+      openEventSetupModal();
+    }
+  });
 
   /* A2A Chat Logic */
   async function handleChatSubmit(e) {
