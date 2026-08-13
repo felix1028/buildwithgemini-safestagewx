@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SafeStageWX - Event Weather Safeguard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined">
+<style>
+  :root {
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --border: #e5e7eb;
+    --warning-bg: #fffbeb;
+    --warning-border: #f59e0b;
+    --warning-text: #92400e;
+    --danger-bg: #fef2f2;
+    --danger-border: #ef4444;
+    --danger-text: #991b1b;
+    --success-bg: #ecfdf5;
+    --success-border: #10b981;
+    --success-text: #065f46;
+    --header-height: 58px;
+    --nav-height: 60px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Mobile Top App Bar */
+  header {
+    height: var(--header-height);
+    background: #0f172a;
+    color: #ffffff;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 20;
+    flex-shrink: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .brand .icon {
+    color: #38bdf8;
+    font-size: 1.4rem;
+  }
+
+  .loc-badge {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .loc-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+  }
+
+  /* Navigation Tabs */
+  .tab-bar {
+    display: flex;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    gap: 0.15rem;
+    transition: all 0.2s;
+  }
+
+  .tab-btn .material-symbols-outlined {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-btn.active .material-symbols-outlined {
+    color: var(--accent);
+  }
+
+  /* Main Container */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tab-pane {
+    display: none;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .tab-pane.active {
+    display: flex;
+  }
+
+  /* Location Actionable Cards */
+  .status-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 1.1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .status-tag {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    padding: 0.25rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .status-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .status-sub {
+    font-size: 0.82rem;
+    color: #94a3b8;
+  }
+
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .action-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+
+  .action-card .card-icon {
+    font-size: 1.4rem;
+    color: var(--accent);
+  }
+
+  .action-card .card-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .action-card .card-val {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* Interactive Tools Cards */
+  .tool-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+
+  .tool-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+  }
+
+  .tool-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .tool-input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .btn-primary:active { background: var(--accent-dark); }
+
+  .btn-warning {
+    background: #f59e0b;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-outline {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .btn-outline:active { background: #f8fafc; }
+
+  /* Map Container */
+  .map-box {
+    width: 100%;
+    height: 200px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .map-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Chat Pane Styles */
+  #chat-pane {
+    padding: 0;
+    height: 100%;
+    max-width: 800px;
+  }
+
+  .chat-history {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .chat-msg {
+    max-width: 88%;
+    padding: 0.75rem 1rem;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  .chat-msg.user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+  }
+
+  .chat-msg.agent {
+    align-self: flex-start;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+
+  .chat-input-bar {
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .chat-input-bar input {
+    flex: 1;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.92rem;
+    outline: none;
+  }
+
+  .chat-input-bar button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* A2UI card styles */
+  .a2card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    margin-top: 0.5rem;
+  }
+  .a2col { display: flex; flex-direction: column; gap: 0.4rem; }
+  .a2row { display: flex; flex-direction: row; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .a2text { margin: 0; line-height: 1.4; }
+  .a2text.a2-h2 { font-size: 1.1rem; font-weight: 700; }
+  .a2text.a2-h3 { font-size: 0.98rem; font-weight: 600; }
+  .a2text.a2-caption { font-size: 0.8rem; color: var(--text-secondary); }
+  .a2divider { border: none; border-top: 1px solid var(--border); margin: 0.4rem 0; width: 100%; }
+
+  /* Broadcast Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+  }
+
+  .modal-content {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.25rem;
+    max-width: 480px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+
+  .script-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    padding: 0.85rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #1e293b;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="material-symbols-outlined icon">bolt</span>
+    <span>SafeStageWX</span>
+  </div>
+  <div class="loc-badge">
+    <span class="dot"></span>
+    <span>Wilmington Island, GA 32.001° N</span>
+  </div>
+</header>
+
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('safeguard-pane', this)">
+    <span class="material-symbols-outlined">shield</span>
+    Safeguard
+  </button>
+  <button class="tab-btn" onclick="switchTab('chat-pane', this)">
+    <span class="material-symbols-outlined">chat_spark</span>
+    AI Agent
+  </button>
+  <button class="tab-btn" onclick="switchTab('venue-pane', this)">
+    <span class="material-symbols-outlined">map</span>
+    Venue Map
+  </button>
+</nav>
+
+<main class="main-content">
+  <!-- TAB 1: SAFEGUARD ACTION DASHBOARD -->
+  <div id="safeguard-pane" class="tab-pane active">
+    
+    <!-- TOP CENTER: EVENT MAP WITH WEATHER WARNING OVERLAY -->
+    <div class="tool-card" style="padding: 0.85rem; border-color: var(--accent); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);">
+      <div class="status-header" style="margin-bottom: 0.5rem;">
+        <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+          <span class="material-symbols-outlined" style="color: #ef4444;">location_on</span>
+          <span>Event Location & Weather Radar Map</span>
+        </div>
+        <span class="status-tag" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-size: 0.72rem;">
+          <span class="material-symbols-outlined" style="font-size: 0.85rem;">verified</span>
+          Live NWS Radar Overlay
+        </span>
+      </div>
+
+      <!-- Centered Interactive Radar & Warning Map with Location Star Pin -->
+      <div class="map-box" style="height: 260px; border-radius: 12px; position: relative; overflow: hidden;">
+        <iframe id="radar-iframe" src="https://www.rainviewer.com/map.html?loc=32.0008,-80.9735,9&o8=1&c=1&o=80&sn=1&al=1" style="width:100%; height:100%; border:none;"></iframe>
+        <!-- Star Marker Overlay -->
+        <div class="star-marker" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
+          <div style="background: #1e293b; color: #fbbf24; padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; margin-bottom: 2px; border: 1px solid #f59e0b; display: flex; align-items: center; gap: 0.2rem;">
+            <span>⭐ 501 Wilmington Island Rd</span>
+          </div>
+          <span class="material-symbols-outlined" style="font-size: 2.4rem; color: #f59e0b; font-variation-settings: 'FILL' 1;">star</span>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">
+        <span>⭐ 501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)</span>
+        <button onclick="document.getElementById('radar-iframe').src=document.getElementById('radar-iframe').src" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:0.75rem; display:flex; align-items:center; gap:0.2rem;">
+          <span class="material-symbols-outlined" style="font-size:0.9rem;">refresh</span>
+          Refresh Radar
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Banner with Dynamic NWS Alert Polygon Status -->
+    <div class="status-banner" id="main-status-banner">
+      <div class="status-header">
+        <span class="status-tag" id="banner-tag" style="background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 700;">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">warning</span>
+          ⚠️ WARNING POLYGON ACTIVE
+        </span>
+        <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">Live NWS Sync</span>
+      </div>
+      <div class="status-title">Wilmington Island Venue (Savannah, GA)</div>
+      <div class="status-sub">501 Wilmington Island Rd • Aug 13, 2026 ~6:30 PM EDT • 100 Guests</div>
+      <div id="active-alerts-list" style="margin-top: 0.5rem; font-size: 0.82rem; color: #fecaca; background: rgba(0,0,0,0.3); padding: 0.4rem 0.6rem; border-radius: 8px;">
+        🚨 <strong>Active Warnings at Coordinates (32.001° N, -80.974° W):</strong> Severe Thunderstorm Warning • Extreme Heat Warning
+      </div>
+    </div>
+
+    <!-- Action Grid -->
+    <div class="action-grid">
+      <div class="action-card" style="border-color: #ef4444;">
+        <span class="material-symbols-outlined card-icon" style="color: #ef4444;">warning</span>
+        <span class="card-label">Active NWS Polygon</span>
+        <span class="card-val" id="md-status" style="color: #ef4444; font-weight: 700;">⚠️ Thunderstorm Warning</span>
+      </div>
+      <div class="action-card">
+        <span class="material-symbols-outlined card-icon">nest_clock_farsight_analog</span>
+        <span class="card-label">Lead Time To Shelter</span>
+        <span class="card-val" id="lead-time-display">16 Minutes</span>
+      </div>
+      <div class="action-card">
+        <span class="material-symbols-outlined card-icon">air</span>
+        <span class="card-label">Max Stage Wind Limit</span>
+        <span class="card-val">35 MPH Gusts</span>
+      </div>
+      <div class="action-card">
+        <span class="material-symbols-outlined card-icon" style="color: #f59e0b;">thunderstorm</span>
+        <span class="card-label">Warning Radius Buffer</span>
+        <span class="card-val" id="radius-val" style="color: #d97706;">20 Mile Radius</span>
+      </div>
+    </div>
+
+    <!-- Tool: Warning Radius Distance Control -->
+    <div class="tool-card" style="border-color: #f59e0b; background: #fffbeb;">
+      <div class="tool-title" style="color: #92400e;">
+        <span class="material-symbols-outlined" style="color: #d97706;">radar</span>
+        Severe Storm Warning Radius Buffer
+      </div>
+      <div style="font-size: 0.82rem; color: #78350f;">
+        Expanded monitoring zone due to nearby convective storms in Savannah area.
+      </div>
+      <div class="tool-row" style="gap: 0.4rem;">
+        <button class="btn-outline" style="flex:1; text-align:center; justify-content:center;" onclick="setRadius(10)">10 Miles</button>
+        <button class="btn-primary" style="flex:1; background:#d97706; text-align:center; justify-content:center;" onclick="setRadius(20)">20 Miles (Active)</button>
+        <button class="btn-outline" style="flex:1; text-align:center; justify-content:center;" onclick="setRadius(30)">30 Miles</button>
+      </div>
+    </div>
+
+    <!-- Tool 1: Interactive Crowd Evacuation Lead Time Calculator -->
+    <div class="tool-card">
+      <div class="tool-title">
+        <span class="material-symbols-outlined" style="color: var(--accent);">directions_run</span>
+        Evacuation Lead Time Calculator
+      </div>
+      <div class="tool-row">
+        <input type="number" id="attendees-count" class="tool-input" value="100" placeholder="Total Attendees">
+        <button class="btn-primary" onclick="calculateEvacTime()">
+          Calculate
+        </button>
+      </div>
+      <div id="evac-result" style="font-size: 0.85rem; color: var(--text-secondary);">
+        💡 Realistic Safety Egress Time to Wilmington Island indoor shelter: <strong>16 mins</strong> for 100 guests.<br>
+        <span style="font-size:0.78rem; color: var(--text-secondary);">(Includes 4m PA perception + 7m door bottleneck + 3m walking travel + 2m safety buffer)</span>
+      </div>
+    </div>
+
+    <!-- Tool 2: One-Tap PA Announcement Generator -->
+    <div class="tool-card">
+      <div class="tool-title">
+        <span class="material-symbols-outlined" style="color: #f59e0b;">campaign</span>
+        PA Script Broadcast Generator
+      </div>
+      <div style="font-size: 0.82rem; color: var(--text-secondary);">
+        Pre-approved NWS fill-in-the-blank statements for instant stadium/event announcements.
+      </div>
+      <button class="btn-outline" onclick="openPA('lightning')">
+        <span>⚡ Lightning Evacuation Announcement</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+      <button class="btn-outline" onclick="openPA('wind')">
+        <span>💨 High Wind Stage Shutdown Script</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+      <button class="btn-outline" onclick="openPA('general')">
+        <span>📢 General Weather Advisory Broadcast</span>
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+
+    <!-- Quick Safeguard Prompts for Agent -->
+    <div class="tool-card">
+      <div class="tool-title">
+        <span class="material-symbols-outlined" style="color: #8b5cf6;">psychology</span>
+        Quick Safeguard Agent Queries
+      </div>
+      <button class="btn-outline" onclick="sendQuickPrompt('Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of 501 Wilmington Island Road Savannah GA coordinates 32.0008, -80.9735 and advise on safety actions.')">
+        <span>🔍 20-Mile Radius Threat Check (32.001, -80.974)</span>
+        <span class="material-symbols-outlined">send</span>
+      </button>
+      <button class="btn-outline" onclick="sendQuickPrompt('Generate an Emergency Action Plan for an outdoor event with 100 guests at 501 Wilmington Island Road, Savannah GA starting in about an hour today Aug 13, 2026.')">
+        <span>📋 Wilmington Island Emergency Action Plan</span>
+        <span class="material-symbols-outlined">send</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: AI AGENT CHAT -->
+  <div id="chat-pane" class="tab-pane">
+    <div class="chat-history" id="chat-history">
+      <div class="chat-msg agent">
+        <strong>⚡ SafeStageWX Assistant</strong><br>
+        Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
+        How can I help protect your venue and attendees today?
+      </div>
+    </div>
+    <form class="chat-input-bar" onsubmit="handleChatSubmit(event)">
+      <input type="text" id="chat-input" placeholder="Ask about weather threats, SPC discussions, or safety rules..." required>
+      <button type="submit">
+        <span class="material-symbols-outlined" style="font-size: 1.2rem;">send</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- TAB 3: VENUE & SHELTER MAP -->
+  <div id="venue-pane" class="tab-pane">
+    <div class="tool-card">
+      <div class="tool-title">
+        <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
+        501 Wilmington Island Road, Savannah, GA 31410
+      </div>
+      <div class="map-box">
+        <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
+      </div>
+      <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+        <strong>Primary Sturdy Shelter:</strong> Main interior venue hall & clubhouse structure.<br>
+        <strong>Coastal Safety Rule:</strong> Direct guests indoors into permanent structure at first sign of thunder or lightning within 20 miles.
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- PA Script Modal -->
+<div class="modal-overlay" id="pa-modal">
+  <div class="modal-content">
+    <div style="font-weight: 700; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+      <span id="pa-modal-title">PA Broadcast Statement</span>
+      <span class="material-symbols-outlined" style="cursor: pointer;" onclick="closePA()">close</span>
+    </div>
+    <div class="script-box" id="pa-script-text"></div>
+    <button class="btn-primary" onclick="copyPA()">
+      <span class="material-symbols-outlined">content_copy</span>
+      Copy Script
+    </button>
+  </div>
+</div>
+
+<script>
+  function switchTab(paneId, btnEl) {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(paneId).classList.add('active');
+    btnEl.classList.add('active');
+  }
+
+  function calculateEvacTime() {
+    const count = parseInt(document.getElementById('attendees-count').value) || 0;
+    // NFPA / Life Safety Egress Engineering metrics:
+    // 1. Perception & Reaction Delay (PA broadcast acknowledgment, gathering items, assisting family): 4 mins
+    // 2. Doorway Bottleneck Flow Rate (approx 15 people/min per doorway): Math.ceil(count / 15) mins
+    // 3. Outdoor Walking Travel Time in rain/wind to main building: 3 mins
+    // 4. Safety Cushion Buffer: 2 mins
+    const bottleneckMins = Math.ceil(count / 15);
+    const totalMins = Math.max(10, 4 + bottleneckMins + 3 + 2);
+    
+    document.getElementById('lead-time-display').innerText = totalMins + " Minutes";
+    document.getElementById('evac-result').innerHTML = `💡 Realistic Safety Egress Time to Wilmington Island indoor shelter: <strong>${totalMins} Minutes</strong> for ${count} attendees.<br><span style="font-size:0.78rem; color: var(--text-secondary);">(Includes 4m PA perception + ${bottleneckMins}m doorway queueing + 3m walking travel + 2m safety cushion)</span>`;
+  }
+
+  function sendQuickPrompt(promptText) {
+    // Switch to chat tab
+    switchTab('chat-pane', document.querySelectorAll('.tab-btn')[1]);
+    document.getElementById('chat-input').value = promptText;
+    document.querySelector('.chat-input-bar').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+  }
+
+  let activeRadiusMiles = 20;
+
+  function setRadius(miles) {
+    activeRadiusMiles = miles;
+    document.getElementById('radius-val').innerText = miles + " Mile Radius";
+    alert(`Warning radius threshold updated to ${miles} Miles for Wilmington Island Road.`);
+  }
+
+  function openPA(type) {
+    const modal = document.getElementById('pa-modal');
+    const titleEl = document.getElementById('pa-modal-title');
+    const textEl = document.getElementById('pa-script-text');
+
+    if (type === 'lightning') {
+      titleEl.innerText = `⚡ ${activeRadiusMiles}-Mile Lightning & Storm Advisory`;
+      textEl.innerText = `"ANNOUNCEMENT TO GUESTS: Convective weather and lightning has been detected within ${activeRadiusMiles} miles of 501 Wilmington Island Road. For your safety, outdoor lawn activities are pausing. Please join us inside the main hall."`;
+    } else if (type === 'wind') {
+      titleEl.innerText = "💨 High Wind Advisory";
+      textEl.innerText = `"ANNOUNCEMENT: Sustained wind gusts approaching outdoor tent safety limits have been recorded. Please step inside the main building."`;
+    } else {
+      titleEl.innerText = "📢 Weather Advisory Broadcast";
+      textEl.innerText = `"ATTENTION GUESTS: A Weather Advisory is active within ${activeRadiusMiles} miles of Wilmington Island, GA. Event staff are monitoring radar sweeps."`;
+    }
+    modal.style.display = 'flex';
+  }
+
+  // Live NWS Alert Polygon Checker for Coordinates (32.0008, -80.9735)
+  async function checkLiveNWSAlerts() {
+    try {
+      const res = await fetch('https://api.weather.gov/alerts/active?point=32.0008,-80.9735', {
+        headers: { 'User-Agent': 'SafeStageWX (event-weather-safeguard)' }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const features = data.features || [];
+      const bannerTag = document.getElementById('banner-tag');
+      const alertsList = document.getElementById('active-alerts-list');
+      const mdStatus = document.getElementById('md-status');
+
+      if (features.length > 0) {
+        const events = features.map(f => f.properties.event).filter(Boolean);
+        const eventSummary = events.join(' • ');
+        
+        bannerTag.style.background = 'rgba(239, 68, 68, 0.25)';
+        bannerTag.style.color = '#ef4444';
+        bannerTag.style.border = '1px solid #ef4444';
+        bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">warning</span> ⚠️ WARNING POLYGON ACTIVE`;
+        
+        if (alertsList) {
+          alertsList.innerHTML = `🚨 <strong>Active NWS Warnings at Venue (32.001° N, -80.974° W):</strong> ${eventSummary}`;
+        }
+        if (mdStatus) {
+          mdStatus.style.color = '#ef4444';
+          mdStatus.innerText = `⚠️ ${events[0] || 'Active Polygon'}`;
+        }
+      } else {
+        bannerTag.style.background = 'rgba(16, 185, 129, 0.15)';
+        bannerTag.style.color = '#059669';
+        bannerTag.style.border = 'none';
+        bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">check_circle</span> CLEAR / MONITORING`;
+        
+        if (alertsList) {
+          alertsList.innerHTML = `✅ No active NWS warning polygons directly affecting coordinates.`;
+        }
+        if (mdStatus) {
+          mdStatus.style.color = 'var(--text-primary)';
+          mdStatus.innerText = 'No Active Polygon';
+        }
+      }
+    } catch (err) {
+      console.log('NWS alert fetch error:', err);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', checkLiveNWSAlerts);
+
+  /* A2A Chat Logic */
+  async function handleChatSubmit(e) {
+    e.preventDefault();
+    const inputEl = document.getElementById('chat-input');
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    inputEl.value = '';
+    appendMsg(text, 'user');
+
+    const agentMsgEl = appendMsg('<em>SafeStageWX is processing...</em>', 'agent');
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, user_id: 'safestagewx-user' })
+      });
+
+      const data = await res.json();
+      agentMsgEl.innerHTML = '';
+
+      if (data.parts && data.parts.length > 0) {
+        let hasContent = false;
+        data.parts.forEach(part => {
+          if ((part.kind === 'a2ui' || part.type === 'a2ui') && (part.data || part.a2ui)) {
+            hasContent = true;
+            renderA2UI(part.data || part.a2ui, agentMsgEl);
+          } else if ((part.kind === 'text' || part.type === 'text') && (part.text)) {
+            hasContent = true;
+            const p = document.createElement('p');
+            p.style.margin = '0 0 0.5rem 0';
+            p.style.whiteSpace = 'pre-wrap';
+            p.innerText = part.text;
+            agentMsgEl.appendChild(p);
+          }
+        });
+        if (!hasContent) {
+          agentMsgEl.innerText = data.parts.map(p => p.text || '').filter(Boolean).join('\n') || "(No text content returned)";
+        }
+      } else if (data.reply) {
+        agentMsgEl.innerText = data.reply;
+      } else {
+        agentMsgEl.innerText = "(No response content returned)";
+      }
+    } catch (err) {
+      agentMsgEl.innerHTML = `<span style="color: var(--danger-text);">Error reaching agent: ${err.message}</span>`;
+    }
+  }
+
+  function appendMsg(content, sender) {
+    const history = document.getElementById('chat-history');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${sender}`;
+    if (typeof content === 'string') {
+      div.innerHTML = content;
+    } else {
+      div.appendChild(content);
+    }
+    history.appendChild(div);
+    history.scrollTop = history.scrollHeight;
+    return div;
+  }
+
+  /* A2UI Component Renderer */
+  function renderA2UI(a2uiData, container) {
+    if (!a2uiData) return;
+    let comps = null;
+    if (Array.isArray(a2uiData)) {
+      comps = a2uiData;
+    } else if (a2uiData.components) {
+      comps = a2uiData.components;
+    } else if (a2uiData.surfaceUpdate && a2uiData.surfaceUpdate.components) {
+      comps = a2uiData.surfaceUpdate.components;
+    } else if (a2uiData.beginRendering && a2uiData.beginRendering.surfaceUpdate && a2uiData.beginRendering.surfaceUpdate.components) {
+      comps = a2uiData.beginRendering.surfaceUpdate.components;
+    }
+    if (!comps || !Array.isArray(comps)) return;
+    
+    // Find root
+    const root = comps.find(c => c.id === 'root') || comps[0];
+    if (root) {
+      const node = buildA2Node(root, comps);
+      if (node) container.appendChild(node);
+    }
+  }
+
+  function buildA2Node(comp, allComps) {
+    if (!comp) return null;
+    const type = comp.type;
+
+    if (type === 'Card') {
+      const card = document.createElement('div');
+      card.className = 'a2card';
+      if (comp.child) {
+        const childComp = allComps.find(c => c.id === comp.child);
+        if (childComp) {
+          const childNode = buildA2Node(childComp, allComps);
+          if (childNode) card.appendChild(childNode);
+        }
+      }
+      return card;
+    }
+
+    if (type === 'Column') {
+      const col = document.createElement('div');
+      col.className = 'a2col';
+      if (comp.children) {
+        comp.children.forEach(id => {
+          const childComp = allComps.find(c => c.id === id);
+          if (childComp) {
+            const childNode = buildA2Node(childComp, allComps);
+            if (childNode) col.appendChild(childNode);
+          }
+        });
+      }
+      return col;
+    }
+
+    if (type === 'Row') {
+      const row = document.createElement('div');
+      row.className = 'a2row';
+      if (comp.children) {
+        comp.children.forEach(id => {
+          const childComp = allComps.find(c => c.id === id);
+          if (childComp) {
+            const childNode = buildA2Node(childComp, allComps);
+            if (childNode) row.appendChild(childNode);
+          }
+        });
+      }
+      return row;
+    }
+
+    if (type === 'Text') {
+      const p = document.createElement('p');
+      p.className = `a2text a2-${comp.variant || 'body'}`;
+      p.innerText = comp.text || '';
+      return p;
+    }
+
+    if (type === 'Divider') {
+      const hr = document.createElement('hr');
+      hr.className = 'a2divider';
+      return hr;
+    }
+
+    return null;
+  }
+</script>
+</body>
+</html>
