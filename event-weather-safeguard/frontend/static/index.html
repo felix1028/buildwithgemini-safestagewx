@@ -504,7 +504,7 @@
         <!-- Star Marker Overlay -->
         <div class="star-marker" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
           <div style="background: #1e293b; color: #fbbf24; padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; margin-bottom: 2px; border: 1px solid #f59e0b; display: flex; align-items: center; gap: 0.2rem;">
-            <span>⭐ 501 Wilmington Island Rd</span>
+            <span id="star-pin-badge">⭐ 501 Wilmington Island Rd</span>
           </div>
           <span class="material-symbols-outlined" style="font-size: 2.4rem; color: #f59e0b; font-variation-settings: 'FILL' 1;">star</span>
         </div>
@@ -622,11 +622,11 @@
         <span class="material-symbols-outlined" style="color: #8b5cf6;">psychology</span>
         Quick Safeguard Agent Queries
       </div>
-      <button class="btn-outline" onclick="sendQuickPrompt('Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of 501 Wilmington Island Road Savannah GA coordinates 32.0008, -80.9735 and advise on safety actions.')">
+      <button class="btn-outline" id="quick-prompt-btn-1" onclick="sendQuickPrompt('Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of 501 Wilmington Island Road Savannah GA coordinates 32.0008, -80.9735 and advise on safety actions.')">
         <span>🔍 20-Mile Radius Threat Check (32.001, -80.974)</span>
         <span class="material-symbols-outlined">send</span>
       </button>
-      <button class="btn-outline" onclick="sendQuickPrompt('Generate an Emergency Action Plan for an outdoor event with 100 guests at 501 Wilmington Island Road, Savannah GA starting in about an hour today Aug 13, 2026.')">
+      <button class="btn-outline" id="quick-prompt-btn-2" onclick="sendQuickPrompt('Generate an Emergency Action Plan for an outdoor event with 100 guests at 501 Wilmington Island Road, Savannah GA starting in about an hour today Aug 13, 2026.')">
         <span>📋 Wilmington Island Emergency Action Plan</span>
         <span class="material-symbols-outlined">send</span>
       </button>
@@ -637,7 +637,7 @@
   <!-- TAB 2: AI AGENT CHAT -->
   <div id="chat-pane" class="tab-pane">
     <div class="chat-history" id="chat-history">
-      <div class="chat-msg agent">
+      <div class="chat-msg agent" id="initial-agent-msg">
         <strong>⚡ SafeStageWX Assistant</strong><br>
         Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
         How can I help protect your venue and attendees today?
@@ -654,12 +654,12 @@
   <!-- TAB 3: VENUE & SHELTER MAP -->
   <div id="venue-pane" class="tab-pane">
     <div class="tool-card">
-      <div class="tool-title">
+      <div class="tool-title" id="tab3-venue-title">
         <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
         501 Wilmington Island Road, Savannah, GA 31410
       </div>
       <div class="map-box">
-        <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
+        <iframe id="tab3-venue-iframe" src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
       </div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
         <strong>Primary Sturdy Shelter:</strong> Main interior venue hall & clubhouse structure.<br>
@@ -749,7 +749,8 @@
     const totalMins = Math.max(10, 4 + bottleneckMins + 3 + 2);
     
     document.getElementById('lead-time-display').innerText = totalMins + " Minutes";
-    document.getElementById('evac-result').innerHTML = `💡 Realistic Safety Egress Time to Wilmington Island indoor shelter: <strong>${totalMins} Minutes</strong> for ${count} attendees.<br><span style="font-size:0.78rem; color: var(--text-secondary);">(Includes 4m PA perception + ${bottleneckMins}m doorway queueing + 3m walking travel + 2m safety cushion)</span>`;
+    const venueName = currentVenueAddress.split(',')[0] || currentVenueAddress;
+    document.getElementById('evac-result').innerHTML = `💡 Realistic Safety Egress Time to ${venueName} indoor shelter: <strong>${totalMins} Minutes</strong> for ${count} attendees.<br><span style="font-size:0.78rem; color: var(--text-secondary);">(Includes 4m PA perception + ${bottleneckMins}m doorway queueing + 3m walking travel + 2m safety cushion)</span>`;
   }
 
   function sendQuickPrompt(promptText) {
@@ -764,7 +765,7 @@
   function setRadius(miles) {
     activeRadiusMiles = miles;
     document.getElementById('radius-val').innerText = miles + " Mile Radius";
-    alert(`Warning radius threshold updated to ${miles} Miles for Wilmington Island Road.`);
+    alert(`Warning radius threshold updated to ${miles} Miles for ${currentVenueAddress}.`);
   }
 
   function openPA(type) {
@@ -774,13 +775,13 @@
 
     if (type === 'lightning') {
       titleEl.innerText = `⚡ ${activeRadiusMiles}-Mile Lightning & Storm Advisory`;
-      textEl.innerText = `"ANNOUNCEMENT TO GUESTS: Convective weather and lightning has been detected within ${activeRadiusMiles} miles of 501 Wilmington Island Road. For your safety, outdoor lawn activities are pausing. Please join us inside the main hall."`;
+      textEl.innerText = `"ANNOUNCEMENT TO GUESTS: Convective weather and lightning has been detected within ${activeRadiusMiles} miles of ${currentVenueAddress}. For your safety, outdoor lawn activities are pausing. Please join us inside the main hall."`;
     } else if (type === 'wind') {
       titleEl.innerText = "💨 High Wind Advisory";
-      textEl.innerText = `"ANNOUNCEMENT: Sustained wind gusts approaching outdoor tent safety limits have been recorded. Please step inside the main building."`;
+      textEl.innerText = `"ANNOUNCEMENT: Sustained wind gusts approaching outdoor tent safety limits at ${currentVenueAddress} have been recorded. Please step inside the main building."`;
     } else {
       titleEl.innerText = "📢 Weather Advisory Broadcast";
-      textEl.innerText = `"ATTENTION GUESTS: A Weather Advisory is active within ${activeRadiusMiles} miles of Wilmington Island, GA. Event staff are monitoring radar sweeps."`;
+      textEl.innerText = `"ATTENTION GUESTS: A Weather Advisory is active within ${activeRadiusMiles} miles of ${currentVenueAddress}. Event staff are monitoring radar sweeps."`;
     }
     modal.style.display = 'flex';
   }
@@ -811,6 +812,7 @@
     const guests = parseInt(document.getElementById('setup-guests').value) || 100;
 
     currentVenueAddress = address;
+    const shortLoc = address.split(',')[0] || address;
 
     // OpenStreetMap Nominatim Geocoding API
     try {
@@ -827,7 +829,11 @@
     }
 
     // Update Header Badge
-    document.getElementById('hdr-loc-badge').innerText = `${address.split(',')[0]} (${currentLat.toFixed(3)}° N)`;
+    document.getElementById('hdr-loc-badge').innerText = `${shortLoc} (${currentLat.toFixed(3)}° N)`;
+
+    // Update Star Pin Overlay Badge
+    const starPin = document.getElementById('star-pin-badge');
+    if (starPin) starPin.innerText = `⭐ ${shortLoc}`;
 
     // Update Venue Address Display
     document.getElementById('venue-address-display').innerText = `⭐ ${address} (${currentLat.toFixed(3)}° N, ${currentLon.toFixed(3)}° W)`;
@@ -839,8 +845,36 @@
     }
 
     // Update Status Banner
-    document.getElementById('banner-event-title').innerText = `${title} (${address.split(',')[0]})`;
+    document.getElementById('banner-event-title').innerText = `${title} (${shortLoc})`;
     document.getElementById('banner-event-sub').innerText = `${address} • ${date} @ ${time} • ${guests} Guests`;
+
+    // Update Tab 3 Venue Map Title & OpenStreetMap iframe
+    const tab3Title = document.getElementById('tab3-venue-title');
+    if (tab3Title) {
+      tab3Title.innerHTML = `<span class="material-symbols-outlined" style="color: var(--accent);">location_on</span> ${address}`;
+    }
+    const tab3Iframe = document.getElementById('tab3-venue-iframe');
+    if (tab3Iframe) {
+      tab3Iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${(currentLon-0.015).toFixed(4)}%2C${(currentLat-0.01).toFixed(4)}%2C${(currentLon+0.015).toFixed(4)}%2C${(currentLat+0.01).toFixed(4)}&amp;layer=mapnik&amp;marker=${currentLat}%2C${currentLon}`;
+    }
+
+    // Update Quick Agent Query Buttons
+    const qBtn1 = document.getElementById('quick-prompt-btn-1');
+    if (qBtn1) {
+      qBtn1.onclick = () => sendQuickPrompt(`Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of ${address} (coordinates ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}) and advise on safety actions.`);
+      qBtn1.innerHTML = `<span>🔍 20-Mile Radius Threat Check (${currentLat.toFixed(3)}, ${currentLon.toFixed(3)})</span><span class="material-symbols-outlined">send</span>`;
+    }
+    const qBtn2 = document.getElementById('quick-prompt-btn-2');
+    if (qBtn2) {
+      qBtn2.onclick = () => sendQuickPrompt(`Generate an Emergency Action Plan for an outdoor event "${title}" with ${guests} guests at ${address} on ${date} starting at ${time}.`);
+      qBtn2.innerHTML = `<span>📋 ${title} Emergency Action Plan</span><span class="material-symbols-outlined">send</span>`;
+    }
+
+    // Update Initial Agent Chat Welcome Message
+    const agentMsg = document.getElementById('initial-agent-msg');
+    if (agentMsg) {
+      agentMsg.innerHTML = `<strong>⚡ SafeStageWX Assistant</strong><br>Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>${address}</strong> (${title}, ${guests} guests, ${date} at ~${time}, 20-Mile Radius Buffer Active).<br><br>How can I help protect your venue and attendees today?`;
+    }
 
     // Update Attendee Count in Lead Time Calculator & recalculate
     document.getElementById('attendees-count').value = guests;
