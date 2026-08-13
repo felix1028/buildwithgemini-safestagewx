@@ -685,17 +685,22 @@
 </div>
 
 <!-- First Interaction Event Setup Onboarding Modal -->
-<div class="modal-overlay" id="event-setup-modal" style="display: flex;">
-  <div class="modal-content" style="max-width: 440px;">
-    <div style="font-weight: 800; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-      <span class="material-symbols-outlined" style="color: var(--accent); font-size: 1.6rem;">event_available</span>
-      Configure Your Event
+<div class="modal-overlay" id="event-setup-modal" style="display: none;">
+  <div class="modal-content" style="max-width: 440px; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-weight: 800; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+        <span class="material-symbols-outlined" style="color: var(--accent); font-size: 1.6rem;">event_available</span>
+        Configure Your Event
+      </div>
+      <button type="button" onclick="closeEventSetupModal()" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); display: flex; align-items: center; padding: 4px; border-radius: 50%;">
+        <span class="material-symbols-outlined" style="font-size: 1.3rem;">close</span>
+      </button>
     </div>
-    <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+    <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; margin-top: 0.4rem;">
       Please enter your event details to generate the event safety profile, powered by weather radar, meteorologist forecasts, and current weather warnings.
     </div>
 
-    <form onsubmit="handleEventSetupSubmit(event)" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
+    <form onsubmit="handleEventSetupSubmit(event)" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.8rem;">
       <div>
         <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EVENT NAME / TYPE</label>
         <input type="text" id="setup-title" class="tool-input" style="width: 100%; box-sizing: border-box;" value="Wilmington Island Reception" placeholder="e.g. Wedding, Concert, Festival" required>
@@ -939,6 +944,76 @@
     }
   }
 
+  function renderSavedEventUI(evt) {
+    if (!evt) return;
+    const title = evt.title || "Event";
+    const address = evt.address || "Location";
+    const date = evt.date || "";
+    const time = evt.time || "";
+    const guests = evt.guests || 100;
+    currentVenueAddress = address;
+    if (evt.lat && evt.lon) {
+      currentLat = evt.lat;
+      currentLon = evt.lon;
+    }
+    const shortLoc = address.split(',')[0] || address;
+
+    // Update Header Badge
+    document.getElementById('hdr-loc-badge').innerText = `${shortLoc} (${currentLat.toFixed(3)}° N)`;
+
+    // Update Star Pin Overlay Badge
+    const starPin = document.getElementById('star-pin-badge');
+    if (starPin) starPin.innerText = `⭐ ${shortLoc}`;
+
+    // Update Venue Address Display
+    document.getElementById('venue-address-display').innerText = `⭐ ${address} (${currentLat.toFixed(3)}° N, ${currentLon.toFixed(3)}° W)`;
+
+    // Update Radar Iframe
+    const radarIframe = document.getElementById('radar-iframe');
+    if (radarIframe) {
+      radarIframe.src = `https://www.rainviewer.com/map.html?loc=${currentLat},${currentLon},9&oScheme=2&settings=1&base=1&radar=1&colors=1&theme=dark`;
+    }
+
+    // Update Status Banner
+    document.getElementById('banner-event-title').innerText = `${title} (${shortLoc})`;
+    document.getElementById('banner-event-sub').innerText = `${address} • ${date} @ ${time} • ${guests} Guests`;
+
+    // Update Tab 3 Venue Map Title & OpenStreetMap iframe
+    const tab3Title = document.getElementById('tab3-venue-title');
+    if (tab3Title) {
+      tab3Title.innerHTML = `<span class="material-symbols-outlined" style="color: var(--accent);">location_on</span> ${address}`;
+    }
+    const tab3Iframe = document.getElementById('tab3-venue-iframe');
+    if (tab3Iframe) {
+      tab3Iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${(currentLon-0.015).toFixed(4)}%2C${(currentLat-0.01).toFixed(4)}%2C${(currentLon+0.015).toFixed(4)}%2C${(currentLat+0.01).toFixed(4)}&amp;layer=mapnik&amp;marker=${currentLat}%2C${currentLon}`;
+    }
+
+    // Update Quick Agent Query Buttons
+    const qBtn1 = document.getElementById('quick-prompt-btn-1');
+    if (qBtn1) {
+      qBtn1.onclick = () => sendQuickPrompt(`Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of ${address} (coordinates ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}) and advise on safety actions.`);
+      qBtn1.innerHTML = `<span>🔍 20-Mile Radius Threat Check (${currentLat.toFixed(3)}, ${currentLon.toFixed(3)})</span><span class="material-symbols-outlined">send</span>`;
+    }
+    const qBtn2 = document.getElementById('quick-prompt-btn-2');
+    if (qBtn2) {
+      qBtn2.onclick = () => sendQuickPrompt(`Generate an Emergency Action Plan for an outdoor event "${title}" with ${guests} guests at ${address} on ${date} starting at ${time}.`);
+      qBtn2.innerHTML = `<span>📋 ${title} Emergency Action Plan</span><span class="material-symbols-outlined">send</span>`;
+    }
+
+    // Update Initial Agent Chat Welcome Message
+    const agentMsg = document.getElementById('initial-agent-msg');
+    if (agentMsg) {
+      agentMsg.innerHTML = `<strong>⚡ SafeStageWX Assistant</strong><br>Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>${address}</strong> (${title}, ${guests} guests, ${date} at ~${time}, 20-Mile Radius Buffer Active).<br><br>How can I help protect your venue and attendees today?`;
+    }
+
+    // Update Attendee Count
+    document.getElementById('attendees-count').value = guests;
+    calculateEvacTime();
+
+    // Check Live NWS Alerts
+    checkLiveNWSAlerts(currentLat, currentLon);
+  }
+
   // Auto-load saved event or show onboarding modal on first visit
   window.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('safestagewx_event');
@@ -950,11 +1025,7 @@
         document.getElementById('setup-date').value = evt.date || '';
         document.getElementById('setup-time').value = evt.time || '';
         document.getElementById('setup-guests').value = evt.guests || 100;
-        if (evt.lat && evt.lon) {
-          currentLat = evt.lat;
-          currentLon = evt.lon;
-        }
-        handleEventSetupSubmit();
+        renderSavedEventUI(evt);
       } catch (e) {
         openEventSetupModal();
       }
