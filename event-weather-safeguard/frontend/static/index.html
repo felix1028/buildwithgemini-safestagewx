@@ -954,6 +954,32 @@
       }
     }
 
+    // Generate NWS Storm Speed vs. Trigger Distance Reference Table
+    const matrixContainer = document.getElementById('nws-matrix-table-container');
+    if (matrixContainer) {
+      let html = `<table style="width:100%; border-collapse: collapse; text-align: center; font-size: 0.75rem; margin-top: 4px;">
+        <thead>
+          <tr style="background: var(--bg-main); border-bottom: 1px solid var(--border); color: var(--text-primary);">
+            <th style="padding: 6px;">Storm Speed</th>
+            <th style="padding: 6px;">Trigger Distance (From Venue)</th>
+            <th style="padding: 6px;">Distance (From 8-Mi Ring)</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      for (let spd = 10; spd <= 60; spd += 10) {
+        const dTrig = Math.round((spd / 60) * tet) + 8;
+        const dRing = Math.round((spd / 60) * tet);
+        const isCurrent = spd === stormSpeed ? 'background: #fef3c7; font-weight: 700;' : '';
+        html += `<tr style="${isCurrent} border-bottom: 1px solid var(--border);">
+          <td style="padding: 6px;">${spd} MPH</td>
+          <td style="padding: 6px; color: var(--accent-dark); font-weight: 700;">${dTrig} Miles</td>
+          <td style="padding: 6px;">${dRing} Miles</td>
+        </tr>`;
+      }
+      html += `</tbody></table>`;
+      matrixContainer.innerHTML = html;
+    }
+
     // Trigger visual real-time SVG countdown ring
     const leadSec = Math.max(1, (tua > 0 ? tua : tet)) * 60;
     startCountdownTimer(actDate.getTime(), leadSec);
@@ -1020,33 +1046,6 @@
 
     update();
     countdownTimerInterval = setInterval(update, 1000);
-  }
-
-    // Generate NWS Storm Speed vs. Trigger Distance Reference Table
-    const matrixContainer = document.getElementById('nws-matrix-table-container');
-    if (matrixContainer) {
-      let html = `<table style="width:100%; border-collapse: collapse; text-align: center; font-size: 0.75rem; margin-top: 4px;">
-        <thead>
-          <tr style="background: var(--bg-main); border-bottom: 1px solid var(--border); color: var(--text-primary);">
-            <th style="padding: 6px;">Storm Speed</th>
-            <th style="padding: 6px;">Trigger Distance (From Venue)</th>
-            <th style="padding: 6px;">Distance (From 8-Mi Ring)</th>
-          </tr>
-        </thead>
-        <tbody>`;
-      for (let spd = 10; spd <= 60; spd += 10) {
-        const dTrig = Math.round((spd / 60) * tet) + 8;
-        const dRing = Math.round((spd / 60) * tet);
-        const isCurrent = spd === stormSpeed ? 'background: #fef3c7; font-weight: 700;' : '';
-        html += `<tr style="${isCurrent} border-bottom: 1px solid var(--border);">
-          <td style="padding: 6px;">${spd} MPH</td>
-          <td style="padding: 6px; color: var(--accent-dark); font-weight: 700;">${dTrig} Miles</td>
-          <td style="padding: 6px;">${dRing} Miles</td>
-        </tr>`;
-      }
-      html += `</tbody></table>`;
-      matrixContainer.innerHTML = html;
-    }
   }
 
   function importEvacToAgent() {
