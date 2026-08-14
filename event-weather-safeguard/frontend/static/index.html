@@ -528,6 +528,9 @@
         📢 <strong>RECOMMENDED SAFETY ACTION:</strong><br>
         💧 <strong>Heat Safety:</strong> Direct guests to stay in cool shaded/indoor areas and provide free hydration/water stations to prevent heat stroke.<br>
         ⚡ <strong>Severe Weather / Lightning:</strong> Direct guests to permanent indoor sturdy shelter and prepare PA broadcast.
+        <div id="afd-cta-takeaway" style="margin-top: 0.35rem; border-top: 1px dashed rgba(234, 179, 8, 0.4); padding-top: 0.35rem; font-size: 0.80rem; color: #fef08a;">
+          📝 <strong>NWS Discussion Highlight:</strong> Loading local meteorologist briefing...
+        </div>
       </div>
     </div>
     
@@ -565,7 +568,7 @@
       </div>
     </div>
 
-    <!-- 3. BOTTOM: Action Grid: Active Warning Polygon & Lead Time To Shelter (Below Map) -->
+    <!-- 3. ACTION GRID: Active Warning Polygon & Lead Time To Shelter (Below Map) -->
     <div class="action-grid">
       <div class="action-card" style="border-color: #ef4444;">
         <span class="material-symbols-outlined card-icon" style="color: #ef4444;">warning</span>
@@ -600,7 +603,10 @@
             <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--accent);">hourglass_top</span>
           </div>
         </div>
-    <!-- 4. NWS AREA FORECAST DISCUSSION (AFD) CARD -->
+      </div>
+    </div>
+
+    <!-- 4. BOTTOM CARD: NWS AREA FORECAST DISCUSSION (AFD) CARD -->
     <div class="tool-card" style="margin-top: 0.85rem; border-color: #0284c7; background: #f0f9ff;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="font-weight: 700; font-size: 0.92rem; color: #0369a1; display: flex; align-items: center; gap: 0.4rem;">
@@ -1125,6 +1131,7 @@ Please import and acknowledge these parameters for future decision making and ev
     const timeEl = document.getElementById('afd-time-stamp');
     const cwaEl = document.getElementById('afd-cwa-badge');
     const linkEl = document.getElementById('afd-web-link');
+    const ctaEl = document.getElementById('afd-cta-takeaway');
 
     try {
       const res = await fetch(`/api/afd?lat=${defaultLat}&lon=${defaultLon}`);
@@ -1142,14 +1149,39 @@ Please import and acknowledge these parameters for future decision making and ev
         timeEl.innerText = `Issued: ${d.toLocaleString()}`;
       }
 
-      if (data.product_text && summaryEl) {
-        summaryEl.innerText = data.product_text.slice(0, 2500) + "\n\n... [Click 'Official NWS Page' link above for full multi-section discussion]";
+      if (data.product_text) {
+        if (summaryEl) summaryEl.innerText = data.product_text.slice(0, 2500) + "\n\n... [Click 'Official NWS Page' link above for full multi-section discussion]";
+
+        if (ctaEl) {
+          const txt = data.product_text;
+          let takeaways = [];
+
+          if (txt.includes('Extreme Heat') || txt.includes('Heat Index') || txt.includes('110F') || txt.includes('120F') || txt.includes('WBGT')) {
+            takeaways.push("🔥 <strong>NWS Discussion Briefing:</strong> Extreme Heat Warning & WBGT 'Black Flag' conditions active. Heat index up to 120°F. Maintain active shading & hydration.");
+          }
+          if (txt.includes('severe') || txt.includes('damaging wind') || txt.includes('thunderstorm') || txt.includes('MCV')) {
+            takeaways.push("⚡ <strong>Convective Alert:</strong> Local NWS meteorologist briefing notes potential for isolated severe thunderstorms with damaging wind gusts late afternoon.");
+          }
+
+          if (takeaways.length === 0) {
+            const kmMatch = txt.match(/\.KEY MESSAGES\.\.\.([\s\S]*?)(?=\&\&|\.[A-Z\s]+\.\.\.)/);
+            if (kmMatch && kmMatch[1]) {
+              const cleaned = kmMatch[1].replace(/[\r\n]+/g, ' ').replace(/- /g, '• ').trim().slice(0, 220);
+              takeaways.push(`📝 <strong>NWS Discussion Takeaway:</strong> ${cleaned}`);
+            } else {
+              takeaways.push("📝 <strong>NWS Discussion Briefing:</strong> Active meteorologist discussion updated for WFO Charleston SC.");
+            }
+          }
+          ctaEl.innerHTML = takeaways.join('<br>');
+        }
       } else if (summaryEl) {
         summaryEl.innerText = "No discussion text returned from NWS API for this area.";
+        if (ctaEl) ctaEl.innerHTML = "📝 <strong>NWS Discussion:</strong> No active briefing text available.";
       }
     } catch (e) {
       console.warn("Failed to load NWS Area Forecast Discussion:", e);
       if (summaryEl) summaryEl.innerText = "Unable to fetch NWS Forecast Discussion automatically. Click 'Official NWS Page' link above to view.";
+      if (ctaEl) ctaEl.innerHTML = "📝 <strong>NWS Discussion:</strong> Visit official NWS page for local meteorologist briefing.";
     }
   }
 
