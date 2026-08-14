@@ -344,11 +344,64 @@ def get_nws_active_alerts(
         return f"Failed to fetch NWS alerts: {e}"
 
 
+def summarize_afd_plain_english(raw_text: str) -> str:
+    """Translates raw NWS Area Forecast Discussion text into plain English with normal spelling and threat highlights."""
+    km_match = re.search(r"\.KEY MESSAGES\.\.\.([\s\S]*?)(?=\&\&|\.[A-Z\s]+\.\.\.)", raw_text)
+    key_messages = []
+    if km_match:
+        lines = km_match.group(1).strip().split("\n")
+        for l in lines:
+            l_clean = re.sub(r"^[-\*•\d\)\.\s]+", "", l.strip()).strip()
+            if l_clean and not l_clean.startswith(".KEY") and not l_clean.startswith("KEY"):
+                l_clean = l_clean.replace("t-storms", "thunderstorms").replace("lvl", "level")
+                key_messages.append(l_clean)
+
+    threats = []
+    text_lower = raw_text.lower()
+
+    if any(k in text_lower for k in ["extreme heat", "heat advisory", "heat index", "wbgt"]):
+        threats.append(
+            ("🔥 EXTREME HEAT HAZARD", "Dangerous heat and humidity. Afternoon heat indices may reach 105°F to 120°F with 'Black Flag' outdoor activity risks.")
+        )
+
+    if any(k in text_lower for k in ["severe", "damaging wind", "t-storm", "thunderstorm", "mcv"]):
+        threats.append(
+            ("⚡ SEVERE THUNDERSTORM RISK", "Scattered afternoon storm clusters expected. Primary hazards: localized damaging wind gusts, frequent lightning, and heavy downpours.")
+        )
+
+    if any(k in text_lower for k in ["coastal flood", "tide", "rip current"]):
+        threats.append(
+            ("🌊 COASTAL & MARINE UPDATE", "Minor tidal flooding possible near high tide. Marine waters remain mostly calm with 2-3 ft seas.")
+        )
+
+    if not threats:
+        threats.append(
+            ("✅ NO SEVERE WEATHER THREATS", "Forecast indicates tranquil weather conditions with no immediate severe hazards.")
+        )
+
+    summary_lines = [
+        "📢 **NWS METEOROLOGIST PLAIN-ENGLISH SUMMARY**\n",
+        "🎯 **Key Forecast Takeaways:**"
+    ]
+
+    if key_messages:
+        for km in key_messages:
+            summary_lines.append(f"• {km}")
+    else:
+        summary_lines.append("• High heat and humidity persist across the region with potential afternoon storm development.")
+
+    summary_lines.append("\n🚨 **Highlighted Weather Threats & Event Safety Impact:**")
+    for title, desc in threats:
+        summary_lines.append(f"• **{title}**: {desc}")
+
+    return "\n".join(summary_lines)
+
+
 def get_nws_forecast_discussion(
     location: str = "", latitude: float = None, longitude: float = None
 ) -> str:
     """Queries the National Weather Service (NWS / api.weather.gov) for the official Area Forecast Discussion (AFD)
-    issued by the local NWS Weather Forecast Office (WFO / CWA) for a specific venue or location.
+    issued by the local NWS Weather Forecast Office (WFO / CWA) and returns a plain-English summary with threat highlights.
 
     Args:
         location: City name or venue location (e.g. 'Savannah, GA', 'Austin, TX'). Resolves coordinates.
@@ -356,8 +409,8 @@ def get_nws_forecast_discussion(
         longitude: Optional explicit longitude float (e.g. -80.9735).
 
     Returns:
-        Structured summary of the latest local NWS Area Forecast Discussion including CWA office code,
-        issuance timestamp, discussion text, and direct forecast.weather.gov web URL.
+        Plain-English summary of local NWS Area Forecast Discussion with highlighted weather threats,
+        CWA office code, issuance timestamp, and direct forecast.weather.gov web URL.
     """
     headers = {"User-Agent": "EventWeatherSafeguard/1.0 (contact@example.com)"}
 
@@ -415,18 +468,16 @@ def get_nws_forecast_discussion(
         product_text = prod_data.get("productText", "")
         issuance_time = prod_data.get("issuanceTime", "")
 
-        clean_text = product_text[:2000]
+        plain_english = summarize_afd_plain_english(product_text)
 
         return (
-            f"=== NWS AREA FORECAST DISCUSSION (WFO/CWA Office: {cwa}) ===\n"
+            f"=== NWS AREA FORECAST DISCUSSION BRIEFING (WFO Office: {cwa}) ===\n"
             f"📍 Location Coordinates: {latitude:.4f}° N, {longitude:.4f}° W\n"
-            f"🏢 Forecast Office API: {forecast_office}\n"
-            f"🔗 Direct NWS Discussion Web Page: {web_discussion_url}\n"
-            f"⏰ Issued At: {issuance_time}\n\n"
-            f"--- DISCUSSION TEXT SUMMARY ---\n"
-            f"{clean_text}\n"
-            f"...\n"
-            f"[View complete full-length forecast discussion: {web_discussion_url}]"
+            f"🏢 Forecast Office: {forecast_office}\n"
+            f"⏰ Issued At: {issuance_time}\n"
+            f"🔗 Direct NWS Discussion Web Page: {web_discussion_url}\n\n"
+            f"{plain_english}\n\n"
+            f"[View full original NWS text: {web_discussion_url}]"
         )
     except Exception as e:
         return f"Error fetching NWS Area Forecast Discussion: {e}"

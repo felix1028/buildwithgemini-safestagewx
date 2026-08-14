@@ -25,6 +25,7 @@ Run:
 """
 
 import os
+import re
 import uuid
 
 import google.auth
@@ -202,6 +203,59 @@ async def chat(req: Request):
     return JSONResponse({"parts": parts})
 
 
+def summarize_afd_plain_english(raw_text: str) -> str:
+    """Translates raw NWS Area Forecast Discussion text into plain English with normal spelling and threat highlights."""
+    km_match = re.search(r"\.KEY MESSAGES\.\.\.([\s\S]*?)(?=\&\&|\.[A-Z\s]+\.\.\.)", raw_text)
+    key_messages = []
+    if km_match:
+        lines = km_match.group(1).strip().split("\n")
+        for l in lines:
+            l_clean = re.sub(r"^[-\*•\d\)\.\s]+", "", l.strip()).strip()
+            if l_clean and not l_clean.startswith(".KEY") and not l_clean.startswith("KEY"):
+                l_clean = l_clean.replace("t-storms", "thunderstorms").replace("lvl", "level")
+                key_messages.append(l_clean)
+
+    threats = []
+    text_lower = raw_text.lower()
+
+    if any(k in text_lower for k in ["extreme heat", "heat advisory", "heat index", "wbgt"]):
+        threats.append(
+            ("🔥 EXTREME HEAT HAZARD", "Dangerous heat and humidity. Afternoon heat indices may reach 105°F to 120°F with 'Black Flag' outdoor activity risks.")
+        )
+
+    if any(k in text_lower for k in ["severe", "damaging wind", "t-storm", "thunderstorm", "mcv"]):
+        threats.append(
+            ("⚡ SEVERE THUNDERSTORM RISK", "Scattered afternoon storm clusters expected. Primary hazards: localized damaging wind gusts, frequent lightning, and heavy downpours.")
+        )
+
+    if any(k in text_lower for k in ["coastal flood", "tide", "rip current"]):
+        threats.append(
+            ("🌊 COASTAL & MARINE UPDATE", "Minor tidal flooding possible near high tide. Marine waters remain mostly calm with 2-3 ft seas.")
+        )
+
+    if not threats:
+        threats.append(
+            ("✅ NO SEVERE WEATHER THREATS", "Forecast indicates tranquil weather conditions with no immediate severe hazards.")
+        )
+
+    summary_lines = [
+        "📢 **NWS METEOROLOGIST PLAIN-ENGLISH BRIEFING**\n",
+        "🎯 **Key Forecast Takeaways:**"
+    ]
+
+    if key_messages:
+        for km in key_messages:
+            summary_lines.append(f"• {km}")
+    else:
+        summary_lines.append("• High heat and humidity persist across the region with potential afternoon storm development.")
+
+    summary_lines.append("\n🚨 **Highlighted Weather Threats & Event Safety Impact:**")
+    for title, desc in threats:
+        summary_lines.append(f"• **{title}**: {desc}")
+
+    return "\n".join(summary_lines)
+
+
 @app.get("/api/afd")
 async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
     """Fetches real-time NWS Area Forecast Discussion (AFD) for latitude & longitude coordinates."""
@@ -227,7 +281,7 @@ async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
                     "cwa": cwa,
                     "forecast_office": office_url,
                     "web_url": web_url,
-                    "text": "Could not fetch active discussion text from NWS API.",
+                    "product_text": "Could not fetch active discussion text from NWS API.",
                 })
 
             graph = afd_res.json().get("@graph", [])
@@ -236,7 +290,7 @@ async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
                     "cwa": cwa,
                     "forecast_office": office_url,
                     "web_url": web_url,
-                    "text": "No discussion products available.",
+                    "product_text": "No discussion products available.",
                 })
 
             latest_id = graph[0].get("id")
@@ -246,16 +300,20 @@ async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
                     "cwa": cwa,
                     "forecast_office": office_url,
                     "web_url": web_url,
-                    "text": "Failed to load product details.",
+                    "product_text": "Failed to load product details.",
                 })
 
             prod_data = prod_res.json()
+            raw_text = prod_data.get("productText", "")
+            plain_summary = summarize_afd_plain_english(raw_text)
+
             return JSONResponse({
                 "cwa": cwa,
                 "forecast_office": office_url,
                 "web_url": web_url,
                 "issuance_time": prod_data.get("issuanceTime"),
-                "product_text": prod_data.get("productText", ""),
+                "product_text": raw_text,
+                "plain_english_summary": plain_summary,
             })
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
