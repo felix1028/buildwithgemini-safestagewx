@@ -82,6 +82,15 @@ def _auth_headers() -> dict[str, str]:
 app = FastAPI()
 
 
+@app.middleware("http")
+async def _disable_cache(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @app.exception_handler(Exception)
 async def _json_errors(request: Request, exc: Exception):
     # Always return JSON so the browser never receives a plain-text 500 page
