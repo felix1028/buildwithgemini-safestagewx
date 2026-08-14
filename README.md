@@ -1,194 +1,87 @@
+# 🛡️ SafeStageWX: Event Weather & Climate Safeguard
+
+> **An enterprise-grade, mobile-responsive event safety platform and AI assistant that protects outdoor events (concerts, festivals, athletic events) by combining live NWS warning polygons, SPC mesoscale discussions, interactive weather radar, automated evacuation decision math, and conversational AI safety grounding.**
+
+---
+
 <div align="center">
 
-<img src="assets/build-with-gemini-banner.png" alt="Build with Gemini" width="100%" />
+![SafeStageWX Demo](demo.gif)
 
-# 🚀 Build with Gemini · Track 3
-
-### The starter kit for Track 3 of the Build with Gemini World Tour, and a showcase of what participants built with it.
-
-Clone this repo, open [Antigravity](https://antigravity.google), and build your own agent-first app on Google Cloud. Every project in the [gallery below](#-featured-projects) was built the same way: prototyped with Antigravity and `agents-cli`, equipped with Memory, tools, storage, and RAG, deployed to Agent Platform, and given a face on Cloud Run.
-
-<br/>
-
-![Build with Gemini](https://img.shields.io/badge/Build%20with%20Gemini-World%20Tour-4285F4?logo=google&logoColor=white)
-![Track 3](https://img.shields.io/badge/Track%203-Agent--First%20Apps-EA4335)
-![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Agent%20Platform-4285F4?logo=googlecloud&logoColor=white)
-![Built with ADK](https://img.shields.io/badge/Built%20with-ADK%20%2B%20agents--cli-34A853)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
-![Projects](https://img.shields.io/badge/Projects-0-blue)
-
-<sub>📖 <a href="https://cszhu.github.io/build-with-gemini/">Lab Guide</a> · 🛠️ <a href="https://google.github.io/agents-cli/guide/getting-started/">agents-cli</a> · 🤖 <a href="https://google.github.io/adk-docs/">ADK</a></sub>
+*Live SafeStageWX Demo: Real-time Threat Monitoring, NWS Point Forecasts, Egress Decision Parameter Imports, and Omni Video Generation.*
 
 </div>
 
 ---
 
-## 📚 Table of Contents
+## 📋 Overview & Problem Statement
 
-- [🧩 Anatomy of a Track 3 Project](#-anatomy-of-a-track-3-project)
-- [🏷️ Capability Legend](#️-capability-legend)
-- [📂 Featured Projects](#-featured-projects)
-  - [🛍️ Commerce & Marketplace Agents](#️-commerce--marketplace-agents)
-  - [🍳 Food & Recipe Agents](#-food--recipe-agents)
-  - [✈️ Travel & Local Agents](#️-travel--local-agents)
-  - [💪 Health, Fitness & Wellness Agents](#-health-fitness--wellness-agents)
-  - [📚 Learning & Knowledge Agents](#-learning--knowledge-agents)
-  - [🎨 Creative & Media Agents](#-creative--media-agents)
-  - [🏢 Productivity & Enterprise Agents](#-productivity--enterprise-agents)
-  - [🧪 Experimental & Other](#-experimental--other)
-- [🧠 What's in this Repo](#-whats-in-this-repo)
-- [🧰 Build Your Own](#-build-your-own)
-- [📚 Resources](#-resources)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
+Outdoor venue operators, event directors, and emergency managers face severe weather hazards—including convective lightning, damaging wind gusts, extreme heat, and severe thunderstorms. **SafeStageWX** eliminates guesswork by fusing real-time National Weather Service (NWS) & Storm Prediction Center (SPC) data with deterministic evacuation math and a conversational Gemini 2.5 AI Safety Assistant.
+
+### Key Capabilities:
+- 🌩️ **Live Threat Monitor & Warning Polygons**: Real-time NWS alerts, interactive RainViewer 480px weather radar overlay, and dynamic Call-to-Action safety banners tailored to active warning types (e.g. hydration for heat, sturdy shelter for lightning/wind).
+- 🤖 **Gemini 2.5 Safety Assistant**: Deployed on Vertex AI Agent Engine with A2UI rich card rendering for date-specific NWS point forecasts, SPC mesoscale discussions, and custom Emergency Action Plans (EAP).
+- ⏱️ **Evacuation & Sheltering Decision Tool**: Official 3-step decision math ($TET = \text{Alert Time} + \text{Walk Time} + 25\% \text{Safety Cushion}$) vs. storm vector speeds to calculate trigger distances and act deadlines.
+- 📥 **1-Tap Egress Parameter Import**: Direct import of calculated evacuation parameters into the AI Assistant context thread for downstream decision support.
+- 📢 **PA Script Broadcast Generator**: Pre-approved stadium announcements for instant lightning, high-wind stage shutdown, or general weather advisories.
+- 🎬 **Omni Video Advisory Generation**: Generates short safety advisory videos using `gemini-omni-flash-preview` and uploads them to public Cloud Storage.
 
 ---
 
-## 🧩 Anatomy of a Track 3 Project
+## ☁️ Google Cloud Tools & Architecture
 
-Every app in this collection is built from the same set of Google Cloud building blocks introduced in the lab. Once you understand this shape, you can read any project here at a glance:
+SafeStageWX leverages the full Google Cloud & Vertex AI Agent Development Kit (ADK) stack:
 
-| Layer | What it does | Powered by |
-|---|---|---|
-| 🤖 **The Agent** | The core reasoning loop | [ADK](https://google.github.io/adk-docs/) + [`agents-cli`](https://google.github.io/agents-cli/guide/getting-started/), scaffolded with [Antigravity](https://antigravity.google) |
-| 🧠 **Memory** | Remembers facts across sessions | [Agent Platform Memory Bank](https://docs.cloud.google.com/gemini-enterprise-agent-platform/scale/memory-bank) |
-| 🗄️ **Structured data** | Inventory, records, lists | [Firestore](https://console.cloud.google.com/firestore) |
-| 🖼️ **Files & blobs** | Images, media, assets | [Cloud Storage](https://console.cloud.google.com/storage) |
-| 🔧 **Tools** | Take real actions and fetch real data | ADK function tools |
-| 📖 **RAG** | Answers grounded in your documents | [Vertex AI RAG Engine](https://console.cloud.google.com/agent-platform/rag) |
-| 🎨 **Media generation** | Creates images (and video) on demand | `gemini-3.1-flash-lite-image` (Nano Banana 2 Lite) · Omni (video) |
-| 🧪 **Code sandbox** | Safely runs generated code | Agent Platform code execution |
-| 🪟 **Agent-first UI** | Cards and tables instead of plain text | [A2UI](https://adk.dev/integrations/a2ui/) |
-| 🌐 **Frontend** | A shareable web face | FastAPI proxy on [Cloud Run](https://cloud.google.com/run) |
+| Google Cloud Tool | Integration & Usage |
+|---|---|
+| 🧠 **Vertex AI Memory Bank** | Remembers cross-session venue preferences, default addresses, and structural wind threshold rules across conversations. |
+| 🗄️ **Google Cloud Firestore** | Persists event profiles (`manage_event_details_firestore`), attendee counts, venue coordinates, and calculated safety plans. |
+| 🖼️ **Google Cloud Storage (GCS)** | Direct in-memory byte upload for generated video advisories (`qwiklabs-gcp-04-72024f788a4d-static-assets-bucket`) returning public HTTPS URLs. |
+| 📖 **Vertex AI RAG Engine** | Grounds safety advice on venue structural wind load standards, NWS evacuation guidelines, and stadium crowd management protocols. |
+| 🎨 **Media Generation (Gemini Omni & Imagen 3)** | Utilizes `gemini-omni-flash-preview` in the global region for video advisory synthesis (`generate_event_safety_video`) and Imagen 3 for visual safety cards. |
+| 🪟 **A2UI (Agent-to-User Interface)** | Renders rich, interactive UI display cards (weather summaries, structural risk profiles, EAP summaries) directly inside the chat stream. |
+| 🌐 **Google Cloud Run** | Hosts the containerized FastAPI proxy and mobile-first glassmorphism web interface (`event-weather-safeguard-frontend`). |
 
 ---
 
-## 🏷️ Capability Legend
+## 🏛️ Application Architecture & Navigation
 
-Each project below is tagged with the building blocks it uses, so you can find exactly the pattern you want to learn:
+### 1️⃣ **Tab 1: Threat Monitor**
+- **Dynamic Call to Action Banner**: Automatically recommends safety actions based on active NWS warning polygons (e.g. hydration/cooling stations for heat; immediate sturdy indoor evacuation for severe convective storms).
+- **Interactive Radar Map**: 480px RainViewer radar centered on venue coordinates with a gold location star badge overlay.
+- **Action Cards**: Live polygon status indicators and calculated Lead Time to Shelter.
 
-`🧠 Memory` · `🗄️ Firestore` · `🖼️ Storage` · `🔧 Tools` · `📖 RAG` · `🎨 Image Gen` · `🎬 Video` · `🧪 Sandbox` · `🪟 A2UI` · `🌐 Cloud Run`
+### 2️⃣ **Tab 2: AI Assistant**
+- **Conversational Safety Loop**: Powered by Gemini 2.5 on Vertex AI Reasoning Engine (`reasoningEngines/1691330358496198656`).
+- **A2UI Rich Renderer**: Native rendering of flat A2UI cards for weather summaries, risk profiles, and safety plans.
+- **Custom Tools**:
+  - `get_nws_point_forecast`: Date-specific 7-day NWS point forecasts.
+  - `get_nws_active_alerts`: Live severe weather watches, warnings, and advisories.
+  - `spc_mesoscale_discussions`: NOAA SPC technical severe weather boundary analysis.
+  - `calculate_coordinates_and_address`: Geocoding via Nominatim.
+  - `manage_event_details_firestore`: Event profile persistence in Cloud Firestore.
+  - `generate_event_safety_video`: Omni video generation with GCS upload and artifact saving.
 
----
-
-## 📂 Featured Projects
-
-A showcase of what workshop participants built with this lab. Entries are added here from the swag and gallery submission form after each event, so the categories below start empty and fill in over time. Browse them for inspiration, or [submit your own](#-contributing) once you've published your project with the `publish-to-github` skill.
-
-<!--
-Add one entry per project, in this format:
-- 🌿 **[Project Name](https://github.com/their-handle/their-repo)**: one-line description of what it does. <br/> <sub>`🗄️ Firestore` · `🎨 Image Gen` · `🪟 A2UI`, by [@handle](https://github.com/handle)</sub>
-
-Pick tags from the Capability Legend above. Bump the "Projects" badge count at the top when you add one.
--->
-
-### 🛍️ Commerce & Marketplace Agents
-
-### 🍳 Food & Recipe Agents
-
-### ✈️ Travel & Local Agents
-
-### 💪 Health, Fitness & Wellness Agents
-
-### 📚 Learning & Knowledge Agents
-
-### 🎨 Creative & Media Agents
-
-### 🏢 Productivity & Enterprise Agents
-
-### 🧪 Experimental & Other
+### 3️⃣ **Tab 3: Safety Tools & Config**
+- **Venue Reference Map**: Interactive map with venue location star pin and primary sturdy shelter rules.
+- **Warning Radius Selector**: Buffer monitoring zone toggle (10 / 20 / 30 miles).
+- **Evacuation Decision Math**:
+  $$\text{Total Evacuation Time (TET)} = (\text{Alert Time} + \text{Walk Time}) \times 1.25$$
+  Calculates Time Until Arrival (TUA), Trigger Distance, and Decision Deadline (Act Time).
+- **Import to AI Assistant**: Button to inject parameters straight into the chat assistant.
+- **PA Broadcast Generator**: Ready-to-read stadium scripts with 1-tap copy functionality.
 
 ---
 
-## 🧠 What's in this Repo
+## 🧪 Evaluation Benchmark
 
-The `.agents/` folder teaches Antigravity how to build agents on Google Cloud.
-
-### Skills
-
-A **skill** is a bundle of instructions that loads automatically when it's relevant, so the agent gets the workflow right in fewer steps instead of rediscovering it each time.
-
-| Skill | What it does |
-| --- | --- |
-| [`pick-your-agent-project`](.agents/skills/pick-your-agent-project/SKILL.md) | Brainstorm your app idea and write a project brief |
-| [`troubleshoot-lab-setup`](.agents/skills/troubleshoot-lab-setup/SKILL.md) | Verify your environment and fix common setup errors |
-| [`memory-bank-setup`](.agents/skills/setup-memory-bank/SKILL.md) | Add cross-session memory to your agent with Vertex AI Memory Bank |
-| [`rag-engine-setup`](.agents/skills/build-rag/SKILL.md) | Ground your agent on documents with a serverless Vertex AI RAG corpus |
-| [`enable-a2ui`](.agents/skills/enable-a2ui/SKILL.md) | Make your agent reply with rich UI cards (A2UI) in the ADK dev UI |
-| [`build-agent-frontend`](.agents/skills/build-agent-frontend/SKILL.md) | Generate a FastAPI chat frontend and ship it to Cloud Run |
-| [`record-demo`](.agents/skills/record-demo/SKILL.md) | Record a branded demo video of your agent, with an optional AI soundtrack |
-| [`publish-to-github`](.agents/skills/publish-to-github/SKILL.md) | Publish your finished project to your own GitHub and submit it for swag |
-
-### Pre-configured tools (MCP)
-
-[`.agents/mcp_config.json`](.agents/mcp_config.json) wires up two [Model Context Protocol](https://modelcontextprotocol.io/) servers that authenticate with your gcloud credentials, so the agent can look things up instead of guessing:
-
-- **Firebase**: work directly with Firestore and other Firebase services
-- **Google Developer Knowledge**: grounded access to Google's official docs (Cloud, Firebase, ADK, Agent Platform)
-
-### Layout
-
-```text
-.agents/
-├── mcp_config.json    # Firebase + Developer Knowledge MCP servers
-└── skills/            # the workshop skills listed above
-```
+**Eval Query:**
+> *"I am hosting an outdoor event on August 13 at 501 Wilmington Island Road, Savannah, GA with 100 guests. Check active warning polygons, calculate evacuation decision trigger distances for 40 MPH convective storms, and provide recommended safety actions."*
 
 ---
 
-## 🧰 Build Your Own
+## 🚀 Live Links & Resources
 
-The full, step-by-step walkthrough lives on the **[lab guide](https://cszhu.github.io/build-with-gemini/)**. This is the short version.
-
-**Prerequisites** (the lab workstation comes with all of this pre-installed; you'll need it if you're running on your own machine):
-
-- A **Google Cloud project** with billing enabled
-- **[Antigravity](https://antigravity.google)** (`agy`), the coding agent that loads the skills above
-- **[agents-cli](https://google.github.io/agents-cli/guide/getting-started/)**, built on the [Agent Development Kit (ADK)](https://google.github.io/adk-docs/)
-- Authenticated gcloud: `gcloud auth login` and `gcloud auth application-default login`
-- A personal **GitHub account** for the final publish-and-submit step
-
-**Quickstart:**
-
-```bash
-git clone https://github.com/cszhu/build-with-gemini
-cd build-with-gemini
-agy
-```
-
-On startup, Antigravity scans the `.agents/` folder and loads the skills and tools above automatically. In the AGY prompt:
-
-```text
-/skills            # see the installed skills
-/mcp               # confirm the firebase + google-developer-knowledge tools are connected
-```
-
-```text
-Verify my setup.   # runs the troubleshoot-lab-setup skill to check your environment
-```
-
-Then follow the [lab guide](https://cszhu.github.io/build-with-gemini/) to design, build, deploy, and share your agent, start to finish.
-
----
-
-## 📚 Resources
-
-- **[Lab guide](https://cszhu.github.io/build-with-gemini/)**: the step-by-step workshop
-- [Antigravity](https://antigravity.google)
-- [agents-cli](https://google.github.io/agents-cli/guide/getting-started/)
-- [Agent Development Kit (ADK)](https://google.github.io/adk-docs/)
-- [Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform)
-
----
-
-## 🤝 Contributing
-
-**Built something?** Publish it with the `publish-to-github` skill and submit it through the form it gives you. Submissions get you swag, and standout projects get added to the [Featured Projects](#-featured-projects) gallery above.
-
-**Found a bug?** If you hit a rough edge in a skill or the lab, please [open an issue](https://github.com/cszhu/build-with-gemini/issues).
-
----
-
-## 📄 License
-
-This is not an officially supported Google product and is provided for the Build with Gemini workshop for demonstration purposes only.
+- 🌐 **Live Web Application**: [https://event-weather-safeguard-frontend-746320986672.us-east1.run.app](https://event-weather-safeguard-frontend-746320986672.us-east1.run.app)
+- 🐙 **GitHub Repository**: [https://github.com/felix1028/buildwithgemini-safestagewx](https://github.com/felix1028/buildwithgemini-safestagewx)
+- 🎥 **Demo Recording Video**: [demo_video.webm](demo_video.webm) | [demo.gif](demo.gif)
