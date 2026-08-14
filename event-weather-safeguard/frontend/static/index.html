@@ -229,6 +229,21 @@
     color: var(--text-primary);
   }
 
+  /* Compact Countdown Ring */
+  .countdown-progress.warning {
+    stroke: url(#countdown-grad-warn) !important;
+  }
+
+  .countdown-progress.danger {
+    stroke: #ef4444 !important;
+    animation: pulse-danger 1s infinite alternate;
+  }
+
+  @keyframes pulse-danger {
+    0% { stroke-opacity: 1; filter: drop-shadow(0 0 2px #ef4444); }
+    100% { stroke-opacity: 0.5; filter: drop-shadow(0 0 6px #ef4444); }
+  }
+
   /* Interactive Tools Cards */
   .tool-card {
     background: #ffffff;
@@ -552,10 +567,34 @@
         <span class="card-label">Active NWS Polygon</span>
         <span class="card-val" id="md-status" style="color: #ef4444; font-weight: 700;">⚠️ Thunderstorm Warning</span>
       </div>
-      <div class="action-card">
-        <span class="material-symbols-outlined card-icon">nest_clock_farsight_analog</span>
-        <span class="card-label">Lead Time To Shelter</span>
-        <span class="card-val" id="lead-time-display">16 Minutes</span>
+      <div class="action-card" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: 0.8rem 1rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+          <div style="display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined card-icon" style="font-size: 1.15rem;">timer</span>
+            <span class="card-label">Decision Countdown</span>
+          </div>
+          <span class="card-val" id="lead-time-display" style="font-size: 1.15rem; font-weight: 800; font-family: monospace;">16:00</span>
+          <span id="act-time-sublabel" style="font-size: 0.68rem; font-weight: 600; color: var(--text-secondary);">Act By: --</span>
+        </div>
+        <div class="countdown-ring-container" style="position: relative; width: 52px; height: 54px; flex-shrink: 0;">
+          <svg class="countdown-svg" viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+            <defs>
+              <linearGradient id="countdown-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+              <linearGradient id="countdown-grad-warn" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#ef4444"/>
+              </linearGradient>
+            </defs>
+            <circle class="countdown-bg" cx="50" cy="50" r="40" style="fill: none; stroke: var(--border, #e2e8f0); stroke-width: 9;" />
+            <circle class="countdown-progress" id="countdown-circle" cx="50" cy="50" r="40" style="fill: none; stroke: url(#countdown-grad); stroke-width: 9; stroke-linecap: round; stroke-dasharray: 251.32; stroke-dashoffset: 0; transition: stroke-dashoffset 0.8s ease-in-out, stroke 0.5s ease;" />
+          </svg>
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+            <span class="material-symbols-outlined" style="font-size: 1.15rem; color: var(--accent);">hourglass_top</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -913,12 +952,75 @@
         actBox.style.background = '#ecfdf5';
         actBox.style.borderColor = '#10b981';
       }
-      if (badge) {
-        badge.style.background = '#10b981';
-        badge.style.color = '#ffffff';
-        badge.innerText = 'SAFE / MONITORING';
+    }
+
+    // Trigger visual real-time SVG countdown ring
+    const leadSec = Math.max(1, (tua > 0 ? tua : tet)) * 60;
+    startCountdownTimer(actDate.getTime(), leadSec);
+  }
+
+  let countdownTimerInterval = null;
+
+  function startCountdownTimer(targetDeadlineMs, totalDurationSec) {
+    if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+
+    const circle = document.getElementById('countdown-circle');
+    const timerValEl = document.getElementById('lead-time-display');
+    const subLabelEl = document.getElementById('act-time-sublabel');
+
+    const circumference = 251.32; // 2 * PI * 40
+
+    if (subLabelEl && targetDeadlineMs) {
+      const d = new Date(targetDeadlineMs);
+      let h = d.getHours();
+      let m = d.getMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      m = m < 10 ? '0' + m : m;
+      subLabelEl.innerText = `Act By: ${h}:${m} ${ampm}`;
+    }
+
+    function update() {
+      const now = Date.now();
+      const remainingMs = targetDeadlineMs - now;
+      const remainingSec = Math.max(0, Math.floor(remainingMs / 1000));
+
+      const mins = Math.floor(remainingSec / 60);
+      const secs = remainingSec % 60;
+      const formattedMins = mins < 10 ? '0' + mins : mins;
+      const formattedSecs = secs < 10 ? '0' + secs : secs;
+
+      if (timerValEl) {
+        if (remainingSec === 0 && targetDeadlineMs <= Date.now()) {
+          timerValEl.innerText = "00:00";
+          if (subLabelEl) subLabelEl.innerText = "EVAC NOW!";
+        } else {
+          timerValEl.innerText = `${formattedMins}:${formattedSecs}`;
+        }
+      }
+
+      if (circle) {
+        const totalSec = Math.max(1, totalDurationSec || 960);
+        const fraction = Math.min(1, Math.max(0, remainingSec / totalSec));
+        const offset = circumference * (1 - fraction);
+        circle.style.strokeDashoffset = offset;
+
+        circle.classList.remove('warning', 'danger');
+        if (remainingSec === 0 || mins < 3) {
+          circle.classList.add('danger');
+        } else if (mins < 7) {
+          circle.classList.add('warning');
+        }
+      }
+
+      if (remainingSec <= 0) {
+        clearInterval(countdownTimerInterval);
       }
     }
+
+    update();
+    countdownTimerInterval = setInterval(update, 1000);
+  }
 
     // Generate NWS Storm Speed vs. Trigger Distance Reference Table
     const matrixContainer = document.getElementById('nws-matrix-table-container');
