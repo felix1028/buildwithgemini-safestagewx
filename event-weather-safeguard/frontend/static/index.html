@@ -1162,8 +1162,7 @@ Please import and acknowledge these parameters for future decision making and ev
         let formatted = data.plain_english_summary
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/^• (.*)$/gm, '<div style="margin-left:0.5rem; margin-top:0.25rem;">• $1</div>')
-          .replace(/📢 (.*)$/gm, '<div style="font-weight:700; color:#0369a1; font-size:0.85rem;">📢 $1</div>')
-          .replace(/🎯 (.*)$/gm, '<div style="font-weight:700; margin-top:0.4rem; color:#0f172a;">🎯 $1</div>')
+          .replace(/🎯 (.*)$/gm, '<div style="font-weight:700; color:#0f172a;">🎯 $1</div>')
           .replace(/🚨 (.*)$/gm, '<div style="font-weight:700; margin-top:0.5rem; color:#b91c1c;">🚨 $1</div>');
         plainBoxEl.innerHTML = formatted;
       }

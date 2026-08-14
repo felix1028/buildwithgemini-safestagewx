@@ -380,7 +380,6 @@ def summarize_afd_plain_english(raw_text: str) -> str:
         )
 
     summary_lines = [
-        "📢 **NWS METEOROLOGIST PLAIN-ENGLISH SUMMARY**\n",
         "🎯 **Key Forecast Takeaways:**"
     ]
 
