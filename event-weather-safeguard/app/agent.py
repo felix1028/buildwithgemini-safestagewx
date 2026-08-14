@@ -482,6 +482,152 @@ def get_nws_forecast_discussion(
         return f"Error fetching NWS Area Forecast Discussion: {e}"
 
 
+def summarize_hwo_plain_english(raw_text: str) -> str:
+    """Parses raw NWS Hazardous Weather Outlook (HWO) text product and formats into clean plain English with threat highlights."""
+    if not raw_text or not raw_text.strip():
+        return "No Hazardous Weather Outlook text provided."
+
+    day_one = ""
+    days_extended = ""
+
+    d1_match = re.search(r'\.DAY ONE\.\.\.([\s\S]*?)(?=\.DAYS TWO THROUGH SEVEN|\.SPOTTER|\$\$)', raw_text, re.IGNORECASE)
+    if d1_match:
+        day_one = d1_match.group(1).strip()
+
+    d2_match = re.search(r'\.DAYS TWO THROUGH SEVEN\.\.\.([\s\S]*?)(?=\.SPOTTER|\$\$)', raw_text, re.IGNORECASE)
+    if d2_match:
+        days_extended = d2_match.group(1).strip()
+
+    def clean_sec(txt):
+        txt = re.sub(r'Weather hazards expected\.\.\.', '', txt, flags=re.IGNORECASE)
+        txt = re.sub(r'DISCUSSION\.\.\.', '\n**Discussion:**', txt, flags=re.IGNORECASE)
+        lines = [line.strip() for line in txt.split('\n') if line.strip()]
+        out = []
+        for line in lines:
+            if line.startswith('Level ') or 'Risk' in line:
+                out.append(f"• **{line}**")
+            elif line.startswith('**Discussion:**'):
+                out.append(line)
+            elif line.startswith('.'):
+                out.append(f"\n**{line.replace('.', '').strip()}**")
+            else:
+                out.append(line)
+        return "\n".join(out)
+
+    summary_lines = []
+
+    if day_one:
+        summary_lines.append("🎯 **Day 1 Hazardous Weather Outlook (Immediate / Today):**")
+        summary_lines.append(clean_sec(day_one))
+
+    if days_extended:
+        summary_lines.append("\n📅 **Days 2–7 Extended Hazardous Weather Outlook:**")
+        summary_lines.append(clean_sec(days_extended))
+
+    threats = []
+    upper_txt = raw_text.upper()
+    if 'DAMAGING WIND' in upper_txt or 'WIND RISK' in upper_txt:
+        threats.append(("💨 DAMAGING WIND HAZARD", "Damaging Wind Risk noted in local HWO."))
+    if 'FLOODING' in upper_txt or 'FLASH FLOOD' in upper_txt:
+        threats.append(("🌊 FLOODING / HEAVY RAIN HAZARD", "Elevated or Significant Flooding Risk indicated in local HWO."))
+    if 'THUNDERSTORM' in upper_txt or 'SEVERE' in upper_txt:
+        threats.append(("⚡ SEVERE THUNDERSTORM HAZARD", "Thunderstorm Risk indicated in local HWO."))
+    if 'HEAT' in upper_txt:
+        threats.append(("🔥 EXCESSIVE HEAT HAZARD", "Excessive Heat Risk indicated in local HWO."))
+
+    if threats:
+        summary_lines.append("\n🚨 **Highlighted HWO Threat Warnings:**")
+        for title, desc in threats:
+            summary_lines.append(f"• **{title}**: {desc}")
+
+    return "\n".join(summary_lines)
+
+
+def get_nws_hazardous_weather_outlook(
+    location: str = "", latitude: float = None, longitude: float = None
+) -> str:
+    """Queries the National Weather Service (NWS / api.weather.gov) for the official Hazardous Weather Outlook (HWO)
+    issued by the local NWS Weather Forecast Office (WFO / CWA) and returns a plain-English summary with threat highlights.
+
+    Args:
+        location: City name or venue location (e.g. 'Savannah, GA', 'Denver, CO'). Resolves coordinates.
+        latitude: Optional explicit latitude float (e.g. 39.7392).
+        longitude: Optional explicit longitude float (e.g. -104.9903).
+
+    Returns:
+        Plain-English summary of local NWS Hazardous Weather Outlook with highlighted hazards,
+        CWA office code, issuance timestamp, and direct forecast.weather.gov web URL.
+    """
+    headers = {"User-Agent": "EventWeatherSafeguard/1.0 (contact@example.com)"}
+
+    if location and (latitude is None or longitude is None):
+        try:
+            geo_res = requests.get(
+                f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(location)}&count=1",
+                timeout=5,
+            )
+            if geo_res.status_code == 200 and geo_res.json().get("results"):
+                top = geo_res.json()["results"][0]
+                latitude = top["latitude"]
+                longitude = top["longitude"]
+            else:
+                return f"Could not resolve coordinates for location '{location}'."
+        except Exception as e:
+            return f"Geocoding error: {e}"
+
+    if latitude is None or longitude is None:
+        latitude, longitude = 32.0008, -80.9735
+
+    points_url = f"https://api.weather.gov/points/{latitude:.4f},{longitude:.4f}"
+    try:
+        pts_res = requests.get(points_url, headers=headers, timeout=8)
+        if pts_res.status_code != 200:
+            return f"NWS Points API returned HTTP {pts_res.status_code} for point ({latitude}, {longitude})."
+
+        props = pts_res.json().get("properties", {})
+        cwa = props.get("cwa")
+        forecast_office = props.get("forecastOffice")
+
+        if not cwa:
+            return f"No CWA office code returned for point ({latitude}, {longitude})."
+
+        web_hwo_url = f"https://forecast.weather.gov/product.php?site={cwa}&product=HWO&issuedby={cwa}"
+
+        hwo_api = f"https://api.weather.gov/products/types/HWO/locations/{cwa}"
+        hwo_res = requests.get(hwo_api, headers=headers, timeout=8)
+        if hwo_res.status_code != 200:
+            return f"No active HWO product found for local office {cwa}. Direct Web Page: {web_hwo_url}"
+
+        graph = hwo_res.json().get("@graph", [])
+        if not graph:
+            return f"No active Hazardous Weather Outlooks found for local office {cwa}. Direct Web Page: {web_hwo_url}"
+
+        latest_id = graph[0].get("id")
+        prod_res = requests.get(f"https://api.weather.gov/products/{latest_id}", headers=headers, timeout=8)
+        if prod_res.status_code != 200:
+            return f"Failed to retrieve HWO product {latest_id}. Direct URL: {web_hwo_url}"
+
+        prod_data = prod_res.json()
+        product_text = prod_data.get("productText", "")
+        issuance_time = prod_data.get("issuanceTime", "")
+
+        plain_english = summarize_hwo_plain_english(product_text)
+
+        return (
+            f"=== NWS HAZARDOUS WEATHER OUTLOOK (HWO) (WFO Office: {cwa}) ===\n"
+            f"📍 Location Coordinates: {latitude:.4f}° N, {longitude:.4f}° W\n"
+            f"🏢 Forecast Office: {forecast_office}\n"
+            f"⏰ Issued At: {issuance_time}\n"
+            f"🔗 Direct NWS HWO Web Page: {web_hwo_url}\n\n"
+            f"{plain_english}\n\n"
+            f"[View full original NWS text: {web_hwo_url}]"
+        )
+    except Exception as e:
+        return f"Error fetching Hazardous Weather Outlook: {e}"
+    except Exception as e:
+        return f"Error fetching NWS Area Forecast Discussion: {e}"
+
+
 def parse_lat_lon_block(raw_text: str) -> list[tuple[float, float]]:
     """Parses LAT...LON polygon boundary coordinates from SPC Mesoscale Discussion text."""
     match = re.search(r"LAT\.\.\.LON\s+([\d\s]+)", raw_text, re.MULTILINE)
@@ -805,6 +951,7 @@ root_agent = Agent(
         get_nws_point_forecast,
         get_nws_active_alerts,
         get_nws_forecast_discussion,
+        get_nws_hazardous_weather_outlook,
         get_spc_mesoscale_discussions,
         save_event_safeguard,
         get_event_safeguards,
