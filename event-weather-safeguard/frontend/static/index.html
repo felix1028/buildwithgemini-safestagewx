@@ -1677,7 +1677,7 @@ Please import and acknowledge these parameters for future decision making and ev
     }
   }
 
-  function renderSavedEventUI(evt) {
+  async function renderSavedEventUI(evt) {
     if (!evt) return;
     const title = evt.title || "Event";
     const address = evt.address || "Location";
@@ -1685,10 +1685,32 @@ Please import and acknowledge these parameters for future decision making and ev
     const time = evt.time || "";
     const guests = evt.guests || 100;
     currentVenueAddress = address;
+
     if (evt.lat && evt.lon) {
       currentLat = evt.lat;
       currentLon = evt.lon;
     }
+
+    // If stored coordinates are default Savannah fallback while address is different, or if lat/lon are missing, re-geocode address dynamically!
+    const isDefaultSavannahCoords = (Math.abs(currentLat - 32.0008) < 0.005 && Math.abs(currentLon - (-80.9735)) < 0.005);
+    const isSavannahAddress = address.toLowerCase().includes('savannah') || address.toLowerCase().includes('wilmington island');
+
+    if (!evt.lat || !evt.lon || (isDefaultSavannahCoords && !isSavannahAddress)) {
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData && geoData.length > 0) {
+            currentLat = parseFloat(geoData[0].lat);
+            currentLon = parseFloat(geoData[0].lon);
+            localStorage.setItem('safestagewx_event', JSON.stringify({ title, address, date, time, guests, lat: currentLat, lon: currentLon }));
+          }
+        }
+      } catch (err) {
+        console.warn('Geocoding retry failed, using existing coordinates:', err);
+      }
+    }
+
     const shortLoc = address.split(',')[0] || address;
 
     // Update Header Badge
@@ -1744,13 +1766,13 @@ Please import and acknowledge these parameters for future decision making and ev
     calculateEvacTime();
 
     // Check Live NWS Alerts, Forecast Discussion, & HWO for saved venue
-    checkLiveNWSAlerts(currentLat, currentLon);
-    loadNWSForecastDiscussion(currentLat, currentLon);
-    loadNWSHazardousWeatherOutlook(currentLat, currentLon);
+    await checkLiveNWSAlerts(currentLat, currentLon);
+    await loadNWSForecastDiscussion(currentLat, currentLon);
+    await loadNWSHazardousWeatherOutlook(currentLat, currentLon);
   }
 
   // Auto-load saved event or show onboarding modal on first visit
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', async () => {
     const saved = localStorage.getItem('safestagewx_event');
     if (saved) {
       try {
@@ -1760,7 +1782,7 @@ Please import and acknowledge these parameters for future decision making and ev
         document.getElementById('setup-date').value = evt.date || '';
         document.getElementById('setup-time').value = evt.time || '';
         document.getElementById('setup-guests').value = evt.guests || 100;
-        renderSavedEventUI(evt);
+        await renderSavedEventUI(evt);
       } catch (e) {
         openEventSetupModal();
       }
