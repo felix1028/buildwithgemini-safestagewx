@@ -606,8 +606,8 @@
       </div>
     </div>
 
-    <!-- 4. BOTTOM CARD: NWS AREA FORECAST DISCUSSION (AFD) CARD -->
-    <div class="tool-card" style="margin-top: 0.85rem; border-color: #0284c7; background: #f0f9ff;">
+    <!-- 4. BOTTOM CARD: NWS AREA FORECAST DISCUSSION (AFD) CARD (Strictly local office, hidden if none available) -->
+    <div class="tool-card" id="afd-card-container" style="margin-top: 0.85rem; border-color: #0284c7; background: #f0f9ff; display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="font-weight: 700; font-size: 0.92rem; color: #0369a1; display: flex; align-items: center; gap: 0.4rem;">
           <span class="material-symbols-outlined" style="color: #0284c7;">feed</span>
@@ -1135,6 +1135,7 @@ Please import and acknowledge these parameters for future decision making and ev
   async function loadNWSForecastDiscussion(lat, lon) {
     const defaultLat = lat || 32.0008;
     const defaultLon = lon || -80.9735;
+    const cardContainer = document.getElementById('afd-card-container');
     const summaryEl = document.getElementById('afd-text-summary');
     const plainBoxEl = document.getElementById('afd-plain-text');
     const timeEl = document.getElementById('afd-time-stamp');
@@ -1146,6 +1147,15 @@ Please import and acknowledge these parameters for future decision making and ev
       const res = await fetch(`/api/afd?lat=${defaultLat}&lon=${defaultLon}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+
+      if (!data.has_briefing || !data.product_text) {
+        if (cardContainer) cardContainer.style.display = 'none';
+        if (ctaEl) ctaEl.style.display = 'none';
+        return;
+      }
+
+      // Local office briefing exists: display card
+      if (cardContainer) cardContainer.style.display = 'block';
 
       if (data.cwa) {
         if (cwaEl) cwaEl.innerText = `${data.cwa}`;
@@ -1167,39 +1177,40 @@ Please import and acknowledge these parameters for future decision making and ev
         plainBoxEl.innerHTML = formatted;
       }
 
-      if (data.product_text) {
-        if (summaryEl) summaryEl.innerText = data.product_text.slice(0, 2500) + "\n\n... [Click 'Official NWS Page' link above for full multi-section discussion]";
+      if (summaryEl) {
+        summaryEl.innerText = data.product_text.slice(0, 2500) + "\n\n... [Click 'Official NWS Page' link above for full multi-section discussion]";
+      }
 
-        if (ctaEl) {
-          const txt = data.product_text;
-          let takeaways = [];
+      if (ctaEl) {
+        const txt = data.product_text;
+        let takeaways = [];
 
-          if (txt.includes('Extreme Heat') || txt.includes('Heat Index') || txt.includes('110F') || txt.includes('120F') || txt.includes('WBGT')) {
-            takeaways.push("🔥 <strong>NWS Discussion Briefing:</strong> Extreme Heat Warning & WBGT 'Black Flag' conditions active. Heat index up to 120°F. Maintain active shading & hydration.");
-          }
-          if (txt.includes('severe') || txt.includes('damaging wind') || txt.includes('thunderstorm') || txt.includes('MCV')) {
-            takeaways.push("⚡ <strong>Convective Alert:</strong> Local NWS meteorologist briefing notes potential for isolated severe thunderstorms with damaging wind gusts late afternoon.");
-          }
-
-          if (takeaways.length === 0) {
-            const kmMatch = txt.match(/\.KEY MESSAGES\.\.\.([\s\S]*?)(?=\&\&|\.[A-Z\s]+\.\.\.)/);
-            if (kmMatch && kmMatch[1]) {
-              const cleaned = kmMatch[1].replace(/[\r\n]+/g, ' ').replace(/- /g, '• ').trim().slice(0, 220);
-              takeaways.push(`📝 <strong>NWS Discussion Takeaway:</strong> ${cleaned}`);
-            } else {
-              takeaways.push("📝 <strong>NWS Discussion Briefing:</strong> Active meteorologist discussion updated for WFO Charleston SC.");
-            }
-          }
-          ctaEl.innerHTML = takeaways.join('<br>');
+        if (txt.includes('Extreme Heat') || txt.includes('Heat Index') || txt.includes('110F') || txt.includes('120F') || txt.includes('WBGT')) {
+          takeaways.push("🔥 <strong>Local NWS Briefing:</strong> Extreme Heat Warning & WBGT 'Black Flag' conditions active. Heat index up to 120°F. Maintain active shading & hydration.");
         }
-      } else if (summaryEl) {
-        summaryEl.innerText = "No discussion text returned from NWS API for this area.";
-        if (ctaEl) ctaEl.innerHTML = "📝 <strong>NWS Discussion:</strong> No active briefing text available.";
+        if (txt.includes('severe') || txt.includes('damaging wind') || txt.includes('thunderstorm') || txt.includes('MCV')) {
+          takeaways.push("⚡ <strong>Convective Alert:</strong> Local NWS meteorologist briefing notes potential for isolated severe thunderstorms with damaging wind gusts late afternoon.");
+        }
+
+        if (takeaways.length === 0) {
+          const kmMatch = txt.match(/\.KEY MESSAGES\.\.\.([\s\S]*?)(?=\&\&|\.[A-Z\s]+\.\.\.)/);
+          if (kmMatch && kmMatch[1]) {
+            const cleaned = kmMatch[1].replace(/[\r\n]+/g, ' ').replace(/- /g, '• ').trim().slice(0, 220);
+            takeaways.push(`📝 <strong>Local NWS Briefing:</strong> ${cleaned}`);
+          }
+        }
+
+        if (takeaways.length > 0) {
+          ctaEl.style.display = 'block';
+          ctaEl.innerHTML = takeaways.join('<br>');
+        } else {
+          ctaEl.style.display = 'none';
+        }
       }
     } catch (e) {
-      console.warn("Failed to load NWS Area Forecast Discussion:", e);
-      if (summaryEl) summaryEl.innerText = "Unable to fetch NWS Forecast Discussion automatically. Click 'Official NWS Page' link above to view.";
-      if (ctaEl) ctaEl.innerHTML = "📝 <strong>NWS Discussion:</strong> Visit official NWS page for local meteorologist briefing.";
+      console.warn("No active NWS Area Forecast Discussion for local office:", e);
+      if (cardContainer) cardContainer.style.display = 'none';
+      if (ctaEl) ctaEl.style.display = 'none';
     }
   }
 

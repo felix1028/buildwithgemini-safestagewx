@@ -257,56 +257,45 @@ def summarize_afd_plain_english(raw_text: str) -> str:
 
 @app.get("/api/afd")
 async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
-    """Fetches real-time NWS Area Forecast Discussion (AFD) for latitude & longitude coordinates."""
+    """Fetches real-time NWS Area Forecast Discussion (AFD) strictly for latitude & longitude coordinates' local office."""
     headers = {"User-Agent": "EventWeatherSafeguard/1.0 (contact@example.com)"}
     async with httpx.AsyncClient(timeout=10) as client:
         try:
             pts_res = await client.get(f"https://api.weather.gov/points/{lat:.4f},{lon:.4f}", headers=headers)
             if pts_res.status_code != 200:
-                return JSONResponse({"error": f"NWS points API error: {pts_res.status_code}"}, status_code=400)
+                return JSONResponse({"has_briefing": False, "reason": f"NWS points API error: {pts_res.status_code}"})
 
             props = pts_res.json().get("properties", {})
             cwa = props.get("cwa")
             office_url = props.get("forecastOffice")
 
             if not cwa:
-                return JSONResponse({"error": "No CWA office found for coordinates"}, status_code=400)
+                return JSONResponse({"has_briefing": False, "reason": "No local CWA office found for coordinates"})
 
             web_url = f"https://forecast.weather.gov/product.php?site={cwa}&product=AFD&issuedby={cwa}"
 
             afd_res = await client.get(f"https://api.weather.gov/products/types/AFD/locations/{cwa}", headers=headers)
             if afd_res.status_code != 200:
-                return JSONResponse({
-                    "cwa": cwa,
-                    "forecast_office": office_url,
-                    "web_url": web_url,
-                    "product_text": "Could not fetch active discussion text from NWS API.",
-                })
+                return JSONResponse({"has_briefing": False, "cwa": cwa, "reason": "No discussion product found for local office"})
 
             graph = afd_res.json().get("@graph", [])
             if not graph:
-                return JSONResponse({
-                    "cwa": cwa,
-                    "forecast_office": office_url,
-                    "web_url": web_url,
-                    "product_text": "No discussion products available.",
-                })
+                return JSONResponse({"has_briefing": False, "cwa": cwa, "reason": "No active discussion products available for local office"})
 
             latest_id = graph[0].get("id")
             prod_res = await client.get(f"https://api.weather.gov/products/{latest_id}", headers=headers)
             if prod_res.status_code != 200:
-                return JSONResponse({
-                    "cwa": cwa,
-                    "forecast_office": office_url,
-                    "web_url": web_url,
-                    "product_text": "Failed to load product details.",
-                })
+                return JSONResponse({"has_briefing": False, "cwa": cwa, "reason": "Failed to load local discussion product"})
 
             prod_data = prod_res.json()
             raw_text = prod_data.get("productText", "")
+            if not raw_text or not raw_text.strip():
+                return JSONResponse({"has_briefing": False, "cwa": cwa, "reason": "Empty discussion product text"})
+
             plain_summary = summarize_afd_plain_english(raw_text)
 
             return JSONResponse({
+                "has_briefing": True,
                 "cwa": cwa,
                 "forecast_office": office_url,
                 "web_url": web_url,
@@ -315,7 +304,7 @@ async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
                 "plain_english_summary": plain_summary,
             })
         except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
+            return JSONResponse({"has_briefing": False, "reason": str(e)})
 
 
 # Serve the chat UI (keep this mount last so /chat wins).
