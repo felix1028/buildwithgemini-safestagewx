@@ -604,8 +604,12 @@
         <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
         501 Wilmington Island Road, Savannah, GA 31410
       </div>
-      <div class="map-box">
+      <div class="map-box" style="position: relative;">
         <iframe id="tab3-venue-iframe" src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
+        <div id="tab3-star-marker" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); pointer-events: none; display: flex; flex-direction: column; align-items: center; z-index: 10;">
+          <span class="material-symbols-outlined" style="font-size: 2.2rem; color: #f59e0b; text-shadow: 0 0 8px rgba(0,0,0,0.8), 0 0 12px #f59e0b; font-weight: bold;">star</span>
+          <span style="background: rgba(15,23,42,0.88); color: #fef08a; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #f59e0b; white-space: nowrap; margin-top: -4px;">⭐ Event Location</span>
+        </div>
       </div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
         <strong>Primary Sturdy Shelter:</strong> Main interior venue hall & clubhouse structure.<br>
@@ -708,7 +712,6 @@
 
       <!-- Import Decision Parameters into AI Assistant Button -->
       <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; background: #8b5cf6 !important; border-color: #7c3aed !important;" onclick="importEvacToAgent()">
-        <span class="material-symbols-outlined">chat_spark</span>
         Import Decision Parameters into AI Assistant
       </button>
 
