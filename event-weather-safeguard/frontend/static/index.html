@@ -575,22 +575,75 @@
       </div>
     </div>
 
-    <!-- Tool 1: Interactive Crowd Evacuation Lead Time Calculator -->
-    <div class="tool-card">
-      <div class="tool-title">
-        <span class="material-symbols-outlined" style="color: var(--accent);">directions_run</span>
-        Evacuation Lead Time Calculator
+    <!-- Tool 1: Official NWS Event Ready Evacuation & Sheltering Decision Tool -->
+    <div class="tool-card" style="border-color: var(--accent);">
+      <div class="tool-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="material-symbols-outlined" style="color: var(--accent);">directions_run</span>
+          NWS Evacuation & Sheltering Decision Tool
+        </span>
+        <span style="font-size: 0.72rem; background: var(--accent-light); color: var(--accent-dark); padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700;">NWS Standard</span>
       </div>
-      <div class="tool-row">
-        <input type="number" id="attendees-count" class="tool-input" value="100" placeholder="Total Attendees">
-        <button class="btn-primary" onclick="calculateEvacTime()">
-          Calculate
-        </button>
+      <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.35;">
+        Official NWS 3-step decision math: Alert Time + Physical Evac Time + 25% NWS Safety Cushion vs. Storm Motion Vector.
       </div>
-      <div id="evac-result" style="font-size: 0.85rem; color: var(--text-secondary);">
-        💡 Realistic Safety Egress Time to Wilmington Island indoor shelter: <strong>16 mins</strong> for 100 guests.<br>
-        <span style="font-size:0.78rem; color: var(--text-secondary);">(Includes 4m PA perception + 7m door bottleneck + 3m walking travel + 2m safety buffer)</span>
+
+      <!-- Step 1: Attendees & Egress Time -->
+      <div style="background: var(--bg-main); padding: 0.75rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="font-weight: 700; font-size: 0.8rem; color: var(--primary);">STEP 1 — Plan (Evacuation Time)</div>
+        <div class="tool-row" style="gap: 0.5rem;">
+          <div style="flex: 1;">
+            <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">ATTENDEES</label>
+            <input type="number" id="attendees-count" class="tool-input" value="100" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">ALERT / PA TIME</label>
+            <input type="number" id="alert-time-input" class="tool-input" value="4" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">EVAC / SHELTER</label>
+            <input type="number" id="evac-time-input" class="tool-input" value="10" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
+          </div>
+        </div>
+        <div id="nws-step1-summary" style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">
+          Total Evac Time (TET): <span id="nws-tet-val" style="color: var(--accent-dark); font-weight: 800;">18 mins</span> <span style="font-weight:400; font-size:0.72rem; color:var(--text-secondary);">(includes 4m 25% NWS safety cushion)</span>
+        </div>
       </div>
+
+      <!-- Step 2: Monitor Weather (Storm Vector) -->
+      <div style="background: var(--bg-main); padding: 0.75rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="font-weight: 700; font-size: 0.8rem; color: var(--primary);">STEP 2 — Monitor Weather (Storm Motion Vector)</div>
+        <div class="tool-row" style="gap: 0.5rem;">
+          <div style="flex: 1;">
+            <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">STORM SPEED (MPH)</label>
+            <input type="number" id="storm-speed-input" class="tool-input" value="40" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">DIST FROM 8-MI RING</label>
+            <input type="number" id="storm-dist-input" class="tool-input" value="12" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Act (Trigger Threshold & Deadline) -->
+      <div id="nws-act-box" style="background: #ecfdf5; border: 1px solid #10b981; padding: 0.75rem; border-radius: 10px; display: flex; flex-direction: column; gap: 0.4rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 800; font-size: 0.82rem; color: #065f46;">STEP 3 — Act (Trigger Threshold)</span>
+          <span id="nws-status-badge" style="font-size: 0.72rem; background: #10b981; color: white; padding: 0.15rem 0.5rem; border-radius: 12px; font-weight: 800;">SAFE / MONITORING</span>
+        </div>
+        <div style="font-size: 0.85rem; color: #047857; line-height: 1.4;">
+          🎯 <strong>Trigger Distance:</strong> Evacuate when storm reaches <strong id="nws-trigger-dist-val">20 Miles</strong> from venue.<br>
+          ⏱️ <strong>Time Until Arrival:</strong> <span id="nws-tua-val">18 mins</span> to 8-mile lightning zone.<br>
+          ⏰ <strong>Decision Deadline (Act Time):</strong> <span id="nws-act-time-val">Current Time</span>
+        </div>
+      </div>
+
+      <!-- Trigger Distance Reference Table Toggle -->
+      <details style="font-size: 0.78rem; color: var(--text-secondary); cursor: pointer; margin-top: 0.2rem;">
+        <summary style="font-weight: 700; color: var(--accent);">📊 View NWS Storm Speed vs. Trigger Distance Lookup Table</summary>
+        <div id="nws-matrix-table-container" style="margin-top: 0.5rem; overflow-x: auto;">
+        </div>
+      </details>
     </div>
 
     <!-- Tool 2: One-Tap PA Announcement Generator -->
@@ -744,18 +797,127 @@
   }
 
   function calculateEvacTime() {
-    const count = parseInt(document.getElementById('attendees-count').value) || 0;
-    // NFPA / Life Safety Egress Engineering metrics:
-    // 1. Perception & Reaction Delay (PA broadcast acknowledgment, gathering items, assisting family): 4 mins
-    // 2. Doorway Bottleneck Flow Rate (approx 15 people/min per doorway): Math.ceil(count / 15) mins
-    // 3. Outdoor Walking Travel Time in rain/wind to main building: 3 mins
-    // 4. Safety Cushion Buffer: 2 mins
-    const bottleneckMins = Math.ceil(count / 15);
-    const totalMins = Math.max(10, 4 + bottleneckMins + 3 + 2);
+    const count = parseInt(document.getElementById('attendees-count')?.value) || 0;
+    const alertTime = parseInt(document.getElementById('alert-time-input')?.value) || 4;
     
-    document.getElementById('lead-time-display').innerText = totalMins + " Minutes";
-    const venueName = currentVenueAddress.split(',')[0] || currentVenueAddress;
-    document.getElementById('evac-result').innerHTML = `💡 Realistic Safety Egress Time to ${venueName} indoor shelter: <strong>${totalMins} Minutes</strong> for ${count} attendees.<br><span style="font-size:0.78rem; color: var(--text-secondary);">(Includes 4m PA perception + ${bottleneckMins}m doorway queueing + 3m walking travel + 2m safety cushion)</span>`;
+    // Physical evac time based on attendance queueing + walk time or manual input
+    let evacInput = document.getElementById('evac-time-input');
+    let evacTime = parseInt(evacInput?.value);
+    if (isNaN(evacTime) || evacTime <= 0) {
+      evacTime = Math.ceil(count / 15) + 3;
+      if (evacInput) evacInput.value = evacTime;
+    }
+
+    // NWS 25% Safety Factor: Math.ceil((AlertTime + EvacTime) * 0.25)
+    const safetyFactor = Math.ceil((alertTime + evacTime) * 0.25);
+    const tet = alertTime + evacTime + safetyFactor; // Total Evacuation Time in minutes
+
+    // Update Step 1 Summary
+    const tetValEl = document.getElementById('nws-tet-val');
+    if (tetValEl) {
+      tetValEl.innerText = `${tet} mins`;
+    }
+    const leadTimeDisp = document.getElementById('lead-time-display');
+    if (leadTimeDisp) leadTimeDisp.innerText = tet + " Minutes";
+
+    // Step 2 & 3: NWS Storm Approach Vector
+    const stormSpeed = parseInt(document.getElementById('storm-speed-input')?.value) || 40;
+    const stormDist8mi = parseInt(document.getElementById('storm-dist-input')?.value) || 12; // miles from 8-mi ring
+    
+    // Time Until Arrival (TUA) at 8-mile lightning ring in minutes
+    const tua = Math.round((stormDist8mi / stormSpeed) * 60);
+
+    // Trigger distance from venue = (Speed / 60 * TET) + 8 miles
+    const triggerDist = Math.round((stormSpeed / 60) * tet) + 8;
+
+    // Act Time / Decision Deadline Calculation
+    const now = new Date();
+    const strikeDate = new Date(now.getTime() + tua * 60000);
+    const actDate = new Date(strikeDate.getTime() - tet * 60000);
+
+    const formatTime = (d) => {
+      let h = d.getHours();
+      let m = d.getMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      m = m < 10 ? '0' + m : m;
+      return `${h}:${m} ${ampm}`;
+    };
+
+    const actTimeStr = formatTime(actDate);
+    const tuaValEl = document.getElementById('nws-tua-val');
+    if (tuaValEl) tuaValEl.innerText = `${tua} mins (${formatTime(strikeDate)})`;
+
+    const trigDistEl = document.getElementById('nws-trigger-dist-val');
+    if (trigDistEl) trigDistEl.innerText = `${triggerDist} Miles`;
+
+    const actTimeEl = document.getElementById('nws-act-time-val');
+    if (actTimeEl) actTimeEl.innerText = actTimeStr;
+
+    // NWS Status Warning Badge & Color Styling
+    const actBox = document.getElementById('nws-act-box');
+    const badge = document.getElementById('nws-status-badge');
+
+    if (tet > tua) {
+      // Emergency / Late
+      if (actBox) {
+        actBox.style.background = '#fef2f2';
+        actBox.style.borderColor = '#ef4444';
+      }
+      if (badge) {
+        badge.style.background = '#ef4444';
+        badge.style.color = '#ffffff';
+        badge.innerText = '🚨 LATE! TRIGGER EVACUATION NOW';
+      }
+    } else if (tua - tet <= 10) {
+      // Warning / Approaching
+      if (actBox) {
+        actBox.style.background = '#fffbeb';
+        actBox.style.borderColor = '#f59e0b';
+      }
+      if (badge) {
+        badge.style.background = '#f59e0b';
+        badge.style.color = '#ffffff';
+        badge.innerText = '⚠️ DECISION DEADLINE APPROACHING';
+      }
+    } else {
+      // Safe / Clear
+      if (actBox) {
+        actBox.style.background = '#ecfdf5';
+        actBox.style.borderColor = '#10b981';
+      }
+      if (badge) {
+        badge.style.background = '#10b981';
+        badge.style.color = '#ffffff';
+        badge.innerText = 'SAFE / MONITORING';
+      }
+    }
+
+    // Generate NWS Storm Speed vs. Trigger Distance Reference Table
+    const matrixContainer = document.getElementById('nws-matrix-table-container');
+    if (matrixContainer) {
+      let html = `<table style="width:100%; border-collapse: collapse; text-align: center; font-size: 0.75rem; margin-top: 4px;">
+        <thead>
+          <tr style="background: var(--bg-main); border-bottom: 1px solid var(--border); color: var(--text-primary);">
+            <th style="padding: 6px;">Storm Speed</th>
+            <th style="padding: 6px;">Trigger Distance (From Venue)</th>
+            <th style="padding: 6px;">Distance (From 8-Mi Ring)</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      for (let spd = 10; spd <= 60; spd += 10) {
+        const dTrig = Math.round((spd / 60) * tet) + 8;
+        const dRing = Math.round((spd / 60) * tet);
+        const isCurrent = spd === stormSpeed ? 'background: #fef3c7; font-weight: 700;' : '';
+        html += `<tr style="${isCurrent} border-bottom: 1px solid var(--border);">
+          <td style="padding: 6px;">${spd} MPH</td>
+          <td style="padding: 6px; color: var(--accent-dark); font-weight: 700;">${dTrig} Miles</td>
+          <td style="padding: 6px;">${dRing} Miles</td>
+        </tr>`;
+      }
+      html += `</tbody></table>`;
+      matrixContainer.innerHTML = html;
+    }
   }
 
   function sendQuickPrompt(promptText) {
