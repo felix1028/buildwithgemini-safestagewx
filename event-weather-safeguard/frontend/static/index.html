@@ -479,8 +479,8 @@
     AI Agent
   </button>
   <button class="tab-btn" onclick="switchTab('venue-pane', this)">
-    <span class="material-symbols-outlined">map</span>
-    Venue Map
+    <span class="material-symbols-outlined">tune</span>
+    Safety Tools & Config
   </button>
 </nav>
 
@@ -488,12 +488,12 @@
   <!-- TAB 1: SAFEGUARD ACTION DASHBOARD -->
   <div id="safeguard-pane" class="tab-pane active">
     
-    <!-- TOP CENTER: EVENT MAP WITH WEATHER WARNING OVERLAY -->
+    <!-- TOP CENTER: ENLARGED EVENT MAP WITH WEATHER WARNING OVERLAY -->
     <div class="tool-card" style="padding: 0.85rem; border-color: var(--accent); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);">
       <div class="status-header" style="margin-bottom: 0.5rem;">
         <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
           <span class="material-symbols-outlined" style="color: #ef4444;">location_on</span>
-          <span>Event Location & Weather Radar Map</span>
+          <span>Event Location & Live Weather Radar Map</span>
         </div>
         <span class="status-tag" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-size: 0.72rem;">
           <span class="material-symbols-outlined" style="font-size: 0.85rem;">verified</span>
@@ -501,8 +501,8 @@
         </span>
       </div>
 
-      <!-- Centered Interactive Radar & Warning Map with Location Star Pin -->
-      <div class="map-box" style="height: 260px; border-radius: 12px; position: relative; overflow: hidden;">
+      <!-- Centered Interactive Radar & Warning Map with Location Star Pin (Larger Height: 480px) -->
+      <div class="map-box" style="height: 480px; border-radius: 12px; position: relative; overflow: hidden;">
         <iframe id="radar-iframe" src="https://www.rainviewer.com/map.html?loc=32.0008,-80.9735,9&o8=1&c=1&o=80&sn=1&al=1" style="width:100%; height:100%; border:none;"></iframe>
         <!-- Star Marker Overlay -->
         <div class="star-marker" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
@@ -513,7 +513,7 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.4rem;">
         <span id="venue-address-display">⭐ 501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)</span>
         <button onclick="document.getElementById('radar-iframe').src=document.getElementById('radar-iframe').src" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:0.75rem; display:flex; align-items:center; gap:0.2rem;">
           <span class="material-symbols-outlined" style="font-size:0.9rem;">refresh</span>
@@ -522,7 +522,7 @@
       </div>
     </div>
 
-    <!-- Status Banner with Dynamic NWS Alert Polygon Status -->
+    <!-- CALL TO ACTION: Status Banner with Dynamic NWS Alert Polygon Status -->
     <div class="status-banner" id="main-status-banner">
       <div class="status-header">
         <span class="status-tag" id="banner-tag" style="background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 700;">
@@ -538,7 +538,7 @@
       </div>
     </div>
 
-    <!-- Action Grid -->
+    <!-- Action Grid: Active Warning Polygon & Lead Time To Shelter -->
     <div class="action-grid">
       <div class="action-card" style="border-color: #ef4444;">
         <span class="material-symbols-outlined card-icon" style="color: #ef4444;">warning</span>
@@ -550,17 +550,45 @@
         <span class="card-label">Lead Time To Shelter</span>
         <span class="card-val" id="lead-time-display">16 Minutes</span>
       </div>
-      <div class="action-card">
-        <span class="material-symbols-outlined card-icon">air</span>
-        <span class="card-label">Max Stage Wind Limit</span>
-        <span class="card-val">35 MPH Gusts</span>
+    </div>
+
+    <!-- Quick Safeguard Prompts for Agent -->
+    <div class="tool-card">
+      <div class="tool-title">
+        <span class="material-symbols-outlined" style="color: #8b5cf6;">psychology</span>
+        Quick Safeguard Agent Queries
       </div>
-      <div class="action-card">
-        <span class="material-symbols-outlined card-icon" style="color: #f59e0b;">thunderstorm</span>
-        <span class="card-label">Warning Radius Buffer</span>
-        <span class="card-val" id="radius-val" style="color: #d97706;">20 Mile Radius</span>
+      <button class="btn-outline" id="quick-prompt-btn-1" onclick="sendQuickPrompt('Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of 501 Wilmington Island Road Savannah GA coordinates 32.0008, -80.9735 and advise on safety actions.')">
+        <span>🔍 20-Mile Radius Threat Check (32.001, -80.974)</span>
+        <span class="material-symbols-outlined">send</span>
+      </button>
+      <button class="btn-outline" id="quick-prompt-btn-2" onclick="sendQuickPrompt('Generate an Emergency Action Plan for an outdoor event with 100 guests at 501 Wilmington Island Road, Savannah GA starting in about an hour today Aug 13, 2026.')">
+        <span>📋 Wilmington Island Emergency Action Plan</span>
+        <span class="material-symbols-outlined">send</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: AI AGENT CHAT -->
+  <div id="chat-pane" class="tab-pane">
+    <div class="chat-history" id="chat-history">
+      <div class="chat-msg agent" id="initial-agent-msg">
+        <strong>⚡ SafeStageWX Assistant</strong><br>
+        Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
+        How can I help protect your venue and attendees today?
       </div>
     </div>
+    <form class="chat-input-bar" onsubmit="handleChatSubmit(event)">
+      <input type="text" id="chat-input" placeholder="Ask about weather threats, SPC discussions, or safety rules..." required>
+      <button type="submit">
+        <span class="material-symbols-outlined" style="font-size: 1.2rem;">send</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- TAB 3: SAFETY TOOLS & CONFIGURATION (FORMERLY VENUE MAP) -->
+  <div id="venue-pane" class="tab-pane">
 
     <!-- Tool: Warning Radius Distance Control -->
     <div class="tool-card" style="border-color: #f59e0b; background: #fffbeb;">
@@ -575,6 +603,20 @@
         <button id="radius-btn-10" class="btn-outline" style="flex:1; text-align:center; justify-content:center; color:#78350f; border-color:#f59e0b; background:#ffffff;" onclick="setRadius(10)">10 Miles</button>
         <button id="radius-btn-20" class="btn-primary" style="flex:1; background:#c2410c !important; color:#ffffff !important; border-color:#9a3412 !important; text-align:center; justify-content:center; font-weight:700;" onclick="setRadius(20)">20 Miles (Active)</button>
         <button id="radius-btn-30" class="btn-outline" style="flex:1; text-align:center; justify-content:center; color:#78350f; border-color:#f59e0b; background:#ffffff;" onclick="setRadius(30)">30 Miles</button>
+      </div>
+    </div>
+
+    <!-- Safety Thresholds Summary Cards -->
+    <div class="action-grid">
+      <div class="action-card">
+        <span class="material-symbols-outlined card-icon">air</span>
+        <span class="card-label">Max Safe Speed Limit</span>
+        <span class="card-val">35 MPH Gusts</span>
+      </div>
+      <div class="action-card">
+        <span class="material-symbols-outlined card-icon" style="color: #f59e0b;">thunderstorm</span>
+        <span class="card-label">Warning Radius Buffer</span>
+        <span class="card-val" id="radius-val" style="color: #d97706;">20 Mile Radius</span>
       </div>
     </div>
 
@@ -672,43 +714,7 @@
       </button>
     </div>
 
-    <!-- Quick Safeguard Prompts for Agent -->
-    <div class="tool-card">
-      <div class="tool-title">
-        <span class="material-symbols-outlined" style="color: #8b5cf6;">psychology</span>
-        Quick Safeguard Agent Queries
-      </div>
-      <button class="btn-outline" id="quick-prompt-btn-1" onclick="sendQuickPrompt('Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of 501 Wilmington Island Road Savannah GA coordinates 32.0008, -80.9735 and advise on safety actions.')">
-        <span>🔍 20-Mile Radius Threat Check (32.001, -80.974)</span>
-        <span class="material-symbols-outlined">send</span>
-      </button>
-      <button class="btn-outline" id="quick-prompt-btn-2" onclick="sendQuickPrompt('Generate an Emergency Action Plan for an outdoor event with 100 guests at 501 Wilmington Island Road, Savannah GA starting in about an hour today Aug 13, 2026.')">
-        <span>📋 Wilmington Island Emergency Action Plan</span>
-        <span class="material-symbols-outlined">send</span>
-      </button>
-    </div>
-
-  </div>
-
-  <!-- TAB 2: AI AGENT CHAT -->
-  <div id="chat-pane" class="tab-pane">
-    <div class="chat-history" id="chat-history">
-      <div class="chat-msg agent" id="initial-agent-msg">
-        <strong>⚡ SafeStageWX Assistant</strong><br>
-        Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
-        How can I help protect your venue and attendees today?
-      </div>
-    </div>
-    <form class="chat-input-bar" onsubmit="handleChatSubmit(event)">
-      <input type="text" id="chat-input" placeholder="Ask about weather threats, SPC discussions, or safety rules..." required>
-      <button type="submit">
-        <span class="material-symbols-outlined" style="font-size: 1.2rem;">send</span>
-      </button>
-    </form>
-  </div>
-
-  <!-- TAB 3: VENUE & SHELTER MAP -->
-  <div id="venue-pane" class="tab-pane">
+    <!-- Venue Location & Map Reference Card -->
     <div class="tool-card">
       <div class="tool-title" id="tab3-venue-title">
         <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
@@ -722,6 +728,7 @@
         <strong>Coastal Safety Rule:</strong> Direct guests indoors into permanent structure at first sign of thunder or lightning within 20 miles.
       </div>
     </div>
+
   </div>
 </main>
 
