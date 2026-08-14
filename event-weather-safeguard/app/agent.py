@@ -344,6 +344,94 @@ def get_nws_active_alerts(
         return f"Failed to fetch NWS alerts: {e}"
 
 
+def get_nws_forecast_discussion(
+    location: str = "", latitude: float = None, longitude: float = None
+) -> str:
+    """Queries the National Weather Service (NWS / api.weather.gov) for the official Area Forecast Discussion (AFD)
+    issued by the local NWS Weather Forecast Office (WFO / CWA) for a specific venue or location.
+
+    Args:
+        location: City name or venue location (e.g. 'Savannah, GA', 'Austin, TX'). Resolves coordinates.
+        latitude: Optional explicit latitude float (e.g. 32.0008).
+        longitude: Optional explicit longitude float (e.g. -80.9735).
+
+    Returns:
+        Structured summary of the latest local NWS Area Forecast Discussion including CWA office code,
+        issuance timestamp, discussion text, and direct forecast.weather.gov web URL.
+    """
+    headers = {"User-Agent": "EventWeatherSafeguard/1.0 (contact@example.com)"}
+
+    if location and (latitude is None or longitude is None):
+        try:
+            geo_res = requests.get(
+                f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(location)}&count=1",
+                timeout=5,
+            )
+            if geo_res.status_code == 200 and geo_res.json().get("results"):
+                top = geo_res.json()["results"][0]
+                latitude = top["latitude"]
+                longitude = top["longitude"]
+            else:
+                return f"Could not resolve coordinates for location '{location}'."
+        except Exception as e:
+            return f"Geocoding error: {e}"
+
+    if latitude is None or longitude is None:
+        latitude, longitude = 32.0008, -80.9735
+
+    points_url = f"https://api.weather.gov/points/{latitude:.4f},{longitude:.4f}"
+    try:
+        pts_res = requests.get(points_url, headers=headers, timeout=8)
+        if pts_res.status_code != 200:
+            return f"NWS Points API returned HTTP {pts_res.status_code} for point ({latitude}, {longitude})."
+
+        props = pts_res.json().get("properties", {})
+        cwa = props.get("cwa")
+        forecast_office = props.get("forecastOffice")
+
+        if not cwa:
+            return f"No CWA (County Warning Area) office code returned for point ({latitude}, {longitude})."
+
+        web_discussion_url = f"https://forecast.weather.gov/product.php?site={cwa}&product=AFD&issuedby={cwa}"
+
+        afd_api = f"https://api.weather.gov/products/types/AFD/locations/{cwa}"
+        afd_res = requests.get(afd_api, headers=headers, timeout=8)
+        if afd_res.status_code != 200:
+            return (
+                f"NWS CWA Office Code: {cwa}. Could not retrieve discussion API payload. "
+                f"Direct Discussion URL: {web_discussion_url}"
+            )
+
+        graph = afd_res.json().get("@graph", [])
+        if not graph:
+            return f"No active forecast discussions found for NWS CWA Office {cwa}. Direct URL: {web_discussion_url}"
+
+        latest_id = graph[0].get("id")
+        prod_res = requests.get(f"https://api.weather.gov/products/{latest_id}", headers=headers, timeout=8)
+        if prod_res.status_code != 200:
+            return f"Failed to retrieve discussion product {latest_id}. Direct URL: {web_discussion_url}"
+
+        prod_data = prod_res.json()
+        product_text = prod_data.get("productText", "")
+        issuance_time = prod_data.get("issuanceTime", "")
+
+        clean_text = product_text[:2000]
+
+        return (
+            f"=== NWS AREA FORECAST DISCUSSION (WFO/CWA Office: {cwa}) ===\n"
+            f"📍 Location Coordinates: {latitude:.4f}° N, {longitude:.4f}° W\n"
+            f"🏢 Forecast Office API: {forecast_office}\n"
+            f"🔗 Direct NWS Discussion Web Page: {web_discussion_url}\n"
+            f"⏰ Issued At: {issuance_time}\n\n"
+            f"--- DISCUSSION TEXT SUMMARY ---\n"
+            f"{clean_text}\n"
+            f"...\n"
+            f"[View complete full-length forecast discussion: {web_discussion_url}]"
+        )
+    except Exception as e:
+        return f"Error fetching NWS Area Forecast Discussion: {e}"
+
+
 def parse_lat_lon_block(raw_text: str) -> list[tuple[float, float]]:
     """Parses LAT...LON polygon boundary coordinates from SPC Mesoscale Discussion text."""
     match = re.search(r"LAT\.\.\.LON\s+([\d\s]+)", raw_text, re.MULTILINE)
@@ -666,6 +754,7 @@ root_agent = Agent(
         calculate_coordinates_and_address,
         get_nws_point_forecast,
         get_nws_active_alerts,
+        get_nws_forecast_discussion,
         get_spc_mesoscale_discussions,
         save_event_safeguard,
         get_event_safeguards,
