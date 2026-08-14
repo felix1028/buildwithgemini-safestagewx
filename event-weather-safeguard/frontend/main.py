@@ -202,6 +202,65 @@ async def chat(req: Request):
     return JSONResponse({"parts": parts})
 
 
+@app.get("/api/afd")
+async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
+    """Fetches real-time NWS Area Forecast Discussion (AFD) for latitude & longitude coordinates."""
+    headers = {"User-Agent": "EventWeatherSafeguard/1.0 (contact@example.com)"}
+    async with httpx.AsyncClient(timeout=10) as client:
+        try:
+            pts_res = await client.get(f"https://api.weather.gov/points/{lat:.4f},{lon:.4f}", headers=headers)
+            if pts_res.status_code != 200:
+                return JSONResponse({"error": f"NWS points API error: {pts_res.status_code}"}, status_code=400)
+
+            props = pts_res.json().get("properties", {})
+            cwa = props.get("cwa")
+            office_url = props.get("forecastOffice")
+
+            if not cwa:
+                return JSONResponse({"error": "No CWA office found for coordinates"}, status_code=400)
+
+            web_url = f"https://forecast.weather.gov/product.php?site={cwa}&product=AFD&issuedby={cwa}"
+
+            afd_res = await client.get(f"https://api.weather.gov/products/types/AFD/locations/{cwa}", headers=headers)
+            if afd_res.status_code != 200:
+                return JSONResponse({
+                    "cwa": cwa,
+                    "forecast_office": office_url,
+                    "web_url": web_url,
+                    "text": "Could not fetch active discussion text from NWS API.",
+                })
+
+            graph = afd_res.json().get("@graph", [])
+            if not graph:
+                return JSONResponse({
+                    "cwa": cwa,
+                    "forecast_office": office_url,
+                    "web_url": web_url,
+                    "text": "No discussion products available.",
+                })
+
+            latest_id = graph[0].get("id")
+            prod_res = await client.get(f"https://api.weather.gov/products/{latest_id}", headers=headers)
+            if prod_res.status_code != 200:
+                return JSONResponse({
+                    "cwa": cwa,
+                    "forecast_office": office_url,
+                    "web_url": web_url,
+                    "text": "Failed to load product details.",
+                })
+
+            prod_data = prod_res.json()
+            return JSONResponse({
+                "cwa": cwa,
+                "forecast_office": office_url,
+                "web_url": web_url,
+                "issuance_time": prod_data.get("issuanceTime"),
+                "product_text": prod_data.get("productText", ""),
+            })
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+
 # Serve the chat UI (keep this mount last so /chat wins).
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

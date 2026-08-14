@@ -10,6 +10,7 @@
 - **Dynamic Call to Action Banner**: Real-time NWS warning polygon status with automated event safety action recommendations (e.g. hydration stations & shade for extreme heat warnings; sturdy indoor evacuation for severe thunderstorm warnings).
 - **Live Weather Radar Map**: 480px interactive RainViewer radar overlay centered on venue coordinates with a floating location star pin badge.
 - **Action Cards**: Active warning polygon status indicator and dynamic **Real-time SVG Decision Countdown Ring** counting down toward the Decision Deadline (`Act Time`).
+- **NWS Area Forecast Discussion (AFD) Card**: Live WFO office detection (`CHS` for Savannah/Charleston) and direct text summary extraction of meteorologist discussions (`https://forecast.weather.gov/product.php?site={CWA}&product=AFD`) with a 1-tap link to the official NWS page.
 - **1-Tap EAP PDF Exporter**: Header & Tab 3 **"📄 Export Safety Report"** button generating clean, branded Incident Command Emergency Action Plan (EAP) PDF reports for local first responders via `html2pdf.js`.
 
 ### **Tab 2: AI Assistant**
@@ -18,6 +19,7 @@
 - **Custom Function Tools**:
   - `get_nws_point_forecast`: Date-specific 7-day NWS point forecasts.
   - `get_nws_active_alerts`: Real-time severe weather watches, warnings, and advisories.
+  - `get_nws_forecast_discussion`: Queries local NWS forecast office (CWA) and retrieves official Area Forecast Discussions (AFD).
   - `spc_mesoscale_discussions`: NOAA SPC technical severe weather boundary analysis translated into crowd safety actions.
   - `calculate_coordinates_and_address`: Geocoding via OpenStreetMap Nominatim.
   - `manage_event_details_firestore`: Event profile persistence in Google Cloud Firestore.

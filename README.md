@@ -20,6 +20,7 @@ Outdoor venue operators, event directors, and emergency managers face severe wea
 
 ### Key Capabilities:
 - 🌩️ **Live Threat Monitor & Warning Polygons**: Real-time NWS alerts, interactive RainViewer 480px weather radar overlay, and dynamic Call-to-Action safety banners tailored to active warning types (e.g. hydration for heat, sturdy shelter for lightning/wind).
+- 📖 **NWS Area Forecast Discussion (AFD)**: Real-time WFO office lookup (`properties.cwa`) and live extraction of local meteorologist forecast discussions (`https://forecast.weather.gov/product.php?site={CWA}&product=AFD`).
 - ⏱️ **Real-time SVG Decision Countdown Ring**: Animated SVG circular progress ring counting down second-by-second toward the Decision Deadline (`Act Time`).
 - 📄 **1-Tap EAP PDF Exporter**: Instant generation of branded Emergency Action Plan (EAP) PDF reports via `html2pdf.js` for local first responders and incident command staff.
 - 🤖 **Gemini 2.5 Safety Assistant**: Deployed on Vertex AI Agent Engine with A2UI rich card rendering for date-specific NWS point forecasts, SPC mesoscale discussions, and custom Emergency Action Plans (EAP).
