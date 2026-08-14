@@ -1215,12 +1215,12 @@ Please import and acknowledge these parameters for future decision making and ev
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadNWSForecastDiscussion(32.0008, -80.9735);
+    loadNWSForecastDiscussion(currentLat, currentLon);
   });
 
   function exportSafetyReport() {
-    const venueName = "Wilmington Island Venue (Savannah, GA)";
-    const address = "501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)";
+    const venueName = currentVenueAddress ? currentVenueAddress.split(',')[0] : "Event Venue";
+    const address = `${currentVenueAddress || "501 Wilmington Island Road, Savannah, GA"} (${currentLat.toFixed(3)}° N, ${currentLon.toFixed(3)}° W)`;
     const timestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
     
     const count = document.getElementById('attendees-count')?.value || 100;
@@ -1504,8 +1504,9 @@ Please import and acknowledge these parameters for future decision making and ev
     document.getElementById('attendees-count').value = guests;
     calculateEvacTime();
 
-    // Check Live NWS Alerts for newly resolved coordinates
+    // Check Live NWS Alerts and Local Office Forecast Discussion for newly resolved coordinates
     await checkLiveNWSAlerts(currentLat, currentLon);
+    await loadNWSForecastDiscussion(currentLat, currentLon);
 
     // Save in LocalStorage
     localStorage.setItem('safestagewx_event', JSON.stringify({ title, address, date, time, guests, lat: currentLat, lon: currentLon }));
@@ -1669,8 +1670,9 @@ Please import and acknowledge these parameters for future decision making and ev
     document.getElementById('attendees-count').value = guests;
     calculateEvacTime();
 
-    // Check Live NWS Alerts
+    // Check Live NWS Alerts & Forecast Discussion for saved venue
     checkLiveNWSAlerts(currentLat, currentLon);
+    loadNWSForecastDiscussion(currentLat, currentLon);
   }
 
   // Auto-load saved event or show onboarding modal on first visit
