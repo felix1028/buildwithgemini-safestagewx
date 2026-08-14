@@ -378,7 +378,7 @@ Options:
 
   console.log(`Navigating to ${options.url}...`);
   try {
-    await page.goto(options.url, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
   } catch (e) {
     console.error(`\nERROR: Could not load ${options.url}.`);
     console.error('Make sure the UI is running (e.g. the frontend on :8080 or the playground on :8000) and reachable.');
@@ -391,9 +391,28 @@ Options:
   await injectFrame(page, { title: options.title, assets });
   await page.waitForTimeout(options.preRollMs);
 
-  // Selector covers the custom frontend (<input id="input">) and the ADK dev UI
-  // (<textarea placeholder="Type a message...">), plus generic chat inputs.
+  // Close initial setup modal if present
+  try {
+    await page.evaluate(() => {
+      const modal = document.getElementById('event-setup-modal');
+      if (modal) modal.style.display = 'none';
+      if (typeof closeEventSetupModal === 'function') closeEventSetupModal();
+    });
+    await page.waitForTimeout(300);
+  } catch (e) {}
+
+  // If the chat input is in a secondary tab (e.g. AI Assistant tab), switch to it.
+  try {
+    const tabBtn = page.locator('[onclick*="chat-pane"], button:has-text("AI Assistant")').first();
+    if (await tabBtn.count() > 0) {
+      await tabBtn.click({ force: true });
+      await page.waitForTimeout(1000);
+    }
+  } catch (e) {}
+
+  // Selector covers custom frontend (#chat-input, #input) and ADK dev UI.
   const inputSelector = [
+    '#chat-input',
     '#input',
     'textarea[placeholder="Type a message..."]',
     'textarea',
