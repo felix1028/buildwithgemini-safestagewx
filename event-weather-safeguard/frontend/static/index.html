@@ -552,9 +552,21 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- TAB 2: AI AGENT CHAT -->
+  <div id="chat-pane" class="tab-pane">
+    <div class="chat-history" id="chat-history">
+      <div class="chat-msg agent" id="initial-agent-msg">
+        <strong>⚡ SafeStageWX Assistant</strong><br>
+        Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
+        How can I help protect your venue and attendees today?
+      </div>
+    </div>
+
     <!-- Quick Safeguard Prompts for Agent -->
-    <div class="tool-card">
-      <div class="tool-title">
+    <div class="tool-card" style="margin-top: 0.75rem; border-color: #8b5cf6;">
+      <div class="tool-title" style="font-size: 0.88rem;">
         <span class="material-symbols-outlined" style="color: #8b5cf6;">psychology</span>
         Quick Safeguard Agent Queries
       </div>
@@ -568,18 +580,7 @@
       </button>
     </div>
 
-  </div>
-
-  <!-- TAB 2: AI AGENT CHAT -->
-  <div id="chat-pane" class="tab-pane">
-    <div class="chat-history" id="chat-history">
-      <div class="chat-msg agent" id="initial-agent-msg">
-        <strong>⚡ SafeStageWX Assistant</strong><br>
-        Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
-        How can I help protect your venue and attendees today?
-      </div>
-    </div>
-    <form class="chat-input-bar" onsubmit="handleChatSubmit(event)">
+    <form class="chat-input-bar" onsubmit="handleChatSubmit(event)" style="margin-top: 0.75rem;">
       <input type="text" id="chat-input" placeholder="Ask about weather threats, SPC discussions, or safety rules..." required>
       <button type="submit">
         <span class="material-symbols-outlined" style="font-size: 1.2rem;">send</span>
