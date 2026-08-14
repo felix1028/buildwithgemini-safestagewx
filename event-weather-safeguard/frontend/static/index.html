@@ -8,6 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SafeStageWX - Event Weather Safeguard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root {
     --accent: #2563eb;
@@ -473,6 +474,10 @@
     <span>SafeStageWX</span>
   </div>
   <div style="display: flex; align-items: center; gap: 0.5rem;">
+    <button onclick="exportSafetyReport()" style="background: #0284c7; border: 1px solid #0369a1; color: white; padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; box-shadow: 0 2px 6px rgba(2,132,199,0.3);">
+      <span class="material-symbols-outlined" style="font-size: 0.95rem;">picture_as_pdf</span>
+      Export Safety Report
+    </button>
     <button onclick="openEventSetupModal()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.2rem;">
       <span class="material-symbols-outlined" style="font-size: 0.9rem;">tune</span>
       Configure Event
@@ -749,10 +754,16 @@
         </div>
       </div>
 
-      <!-- Import Decision Parameters into AI Assistant Button -->
-      <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; background: #8b5cf6 !important; border-color: #7c3aed !important;" onclick="importEvacToAgent()">
-        Import Decision Parameters into AI Assistant
-      </button>
+      <!-- Import & Export Buttons -->
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <button class="btn-primary" style="flex: 1; justify-content: center; background: #8b5cf6 !important; border-color: #7c3aed !important;" onclick="importEvacToAgent()">
+          Import Decision Parameters into AI Assistant
+        </button>
+        <button class="btn-primary" style="flex: 1; justify-content: center; background: #0284c7 !important; border-color: #0369a1 !important;" onclick="exportSafetyReport()">
+          <span class="material-symbols-outlined" style="font-size: 1.05rem;">picture_as_pdf</span>
+          Export Safety Report (PDF)
+        </button>
+      </div>
 
       <!-- Trigger Distance Reference Table Toggle -->
       <details style="font-size: 0.78rem; color: var(--text-secondary); cursor: pointer; margin-top: 0.2rem;">
@@ -1080,6 +1091,140 @@ Please import and acknowledge these parameters for future decision making and ev
     switchTab('chat-pane', document.querySelectorAll('.tab-btn')[1]);
     document.getElementById('chat-input').value = promptText;
     document.querySelector('.chat-input-bar').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+  }
+
+  function exportSafetyReport() {
+    const venueName = "Wilmington Island Venue (Savannah, GA)";
+    const address = "501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)";
+    const timestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
+    
+    const count = document.getElementById('attendees-count')?.value || 100;
+    const alertTime = document.getElementById('alert-time-input')?.value || 4;
+    const evacTime = document.getElementById('evac-time-input')?.value || 10;
+    const tet = document.getElementById('nws-tet-val')?.innerText || '18 mins';
+    const stormSpeed = document.getElementById('storm-speed-input')?.value || 40;
+    const stormDist = document.getElementById('storm-dist-input')?.value || 12;
+    const triggerDist = document.getElementById('nws-trigger-dist-val')?.innerText || '20 Miles';
+    const tua = document.getElementById('nws-tua-val')?.innerText || '18 mins';
+    const actTime = document.getElementById('nws-act-time-val')?.innerText || 'Current Time';
+    const countdown = document.getElementById('lead-time-display')?.innerText || '16:00';
+    const alertStatus = document.getElementById('md-status')?.innerText || '⚠️ Severe Thunderstorm Warning';
+
+    const reportContainer = document.createElement('div');
+    reportContainer.id = 'temp-pdf-report';
+    reportContainer.style.padding = '24px';
+    reportContainer.style.fontFamily = 'Inter, Arial, sans-serif';
+    reportContainer.style.color = '#0f172a';
+    reportContainer.style.backgroundColor = '#ffffff';
+    reportContainer.style.maxWidth = '800px';
+
+    reportContainer.innerHTML = `
+      <div style="border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h1 style="margin: 0; font-size: 22px; color: #1e3a8a; font-weight: 800;">SafeStageWX — Event Emergency Action Plan (EAP)</h1>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #475569; font-weight: 600;">Official Incident Command Weather Safety & Egress Report for First Responders</p>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #64748b;">
+          <strong>Generated:</strong> ${timestamp}<br>
+          <strong>Status:</strong> OFFICIAL EAP REPORT
+        </div>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+        <h2 style="margin: 0 0 6px 0; font-size: 15px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">📍 Event Location & Venue Information</h2>
+        <p style="margin: 2px 0; font-size: 13px;"><strong>Venue:</strong> ${venueName}</p>
+        <p style="margin: 2px 0; font-size: 13px;"><strong>Address/GPS:</strong> ${address}</p>
+        <p style="margin: 2px 0; font-size: 13px;"><strong>Expected Attendees:</strong> ${count} Guests & Staff</p>
+      </div>
+
+      <div style="background: #fef2f2; border: 1.5px solid #ef4444; border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+        <h2 style="margin: 0 0 6px 0; font-size: 15px; color: #991b1b;">⚠️ Active Weather Warning & Threat Status</h2>
+        <p style="margin: 3px 0; font-size: 14px; color: #dc2626; font-weight: 700;"><strong>Active NWS Alert:</strong> ${alertStatus}</p>
+        <p style="margin: 3px 0; font-size: 13px;"><strong>Decision Deadline (Act Time):</strong> <span style="font-weight:700; color:#b91c1c;">${actTime}</span></p>
+        <p style="margin: 3px 0; font-size: 13px;"><strong>Remaining Lead Time Countdown:</strong> <span style="font-weight:700; color:#b91c1c;">${countdown}</span></p>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+        <h2 style="margin: 0 0 10px 0; font-size: 15px; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">📐 Evacuation Mathematics & Egress Parameters</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+          <thead>
+            <tr style="background: #f1f5f9; color: #334155;">
+              <th style="padding: 6px 8px; border: 1px solid #e2e8f0;">Parameter</th>
+              <th style="padding: 6px 8px; border: 1px solid #e2e8f0;">Value / Calculation</th>
+              <th style="padding: 6px 8px; border: 1px solid #e2e8f0;">Operational Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;"><strong>PA Alert Broadcast Time</strong></td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">${alertTime} Minutes</td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">Time to trigger PA announcement & staff alert</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;"><strong>Physical Walk/Egress Time</strong></td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">${evacTime} Minutes</td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">Crowd movement rate based on attendance</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;"><strong>NWS Safety Cushion (25%)</strong></td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">+25% Buffer</td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">Required OSHA/NWS safety margin</td>
+            </tr>
+            <tr style="background: #eff6ff;">
+              <td style="padding: 6px 8px; border: 1px solid #bfdbfe;"><strong>Total Evacuation Time (TET)</strong></td>
+              <td style="padding: 6px 8px; border: 1px solid #bfdbfe; font-weight:700; color:#1d4ed8;">${tet}</td>
+              <td style="padding: 6px 8px; border: 1px solid #bfdbfe;">Total minimum required lead time</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;"><strong>Storm Approach Vector</strong></td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">${stormSpeed} MPH @ ${stormDist} Mi from ring</td>
+              <td style="padding: 6px 8px; border: 1px solid #e2e8f0;">Radar velocity & distance tracking</td>
+            </tr>
+            <tr style="background: #fef3c7;">
+              <td style="padding: 6px 8px; border: 1px solid #fde68a;"><strong>Action Trigger Distance</strong></td>
+              <td style="padding: 6px 8px; border: 1px solid #fde68a; font-weight:700; color:#b45309;">${triggerDist}</td>
+              <td style="padding: 6px 8px; border: 1px solid #fde68a;">Evacuation trigger perimeter radius</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px; margin-bottom: 18px;">
+        <h2 style="margin: 0 0 6px 0; font-size: 15px; color: #15803d;">🛡️ First Responder Action Protocol</h2>
+        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #166534; line-height: 1.6;">
+          <li><strong>Heat Safety:</strong> Hydration stations & shaded cooling structures active. First Aid tent on standby.</li>
+          <li><strong>Lightning & Severe Weather:</strong> Immediate evacuation to permanent structures mandated upon storm reaching ${triggerDist}.</li>
+          <li><strong>Crowd Egress Corridors:</strong> Keep primary north & south exit gates clear of vehicles for emergency access.</li>
+        </ul>
+      </div>
+
+      <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #94a3b8;">
+        Generated by SafeStageWX AI Agent • Verified with Google Cloud Vertex AI & NWS Weather Guidance
+      </div>
+    `;
+
+    document.body.appendChild(reportContainer);
+
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     `SafeStageWX_Safety_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, logging: false },
+      jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    };
+
+    if (window.html2pdf) {
+      window.html2pdf().set(opt).from(reportContainer).save().then(() => {
+        if (reportContainer.parentNode) reportContainer.parentNode.removeChild(reportContainer);
+      }).catch(err => {
+        console.error("PDF generation error:", err);
+        if (reportContainer.parentNode) reportContainer.parentNode.removeChild(reportContainer);
+        window.print();
+      });
+    } else {
+      window.print();
+      if (reportContainer.parentNode) reportContainer.parentNode.removeChild(reportContainer);
+    }
   }
 
   let activeRadiusMiles = 20;

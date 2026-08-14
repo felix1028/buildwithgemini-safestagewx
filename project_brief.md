@@ -9,7 +9,8 @@
 ### **Tab 1: Threat Monitor**
 - **Dynamic Call to Action Banner**: Real-time NWS warning polygon status with automated event safety action recommendations (e.g. hydration stations & shade for extreme heat warnings; sturdy indoor evacuation for severe thunderstorm warnings).
 - **Live Weather Radar Map**: 480px interactive RainViewer radar overlay centered on venue coordinates with a floating location star pin badge.
-- **Action Cards**: Active warning polygon status indicator and dynamic Lead Time to Shelter display.
+- **Action Cards**: Active warning polygon status indicator and dynamic **Real-time SVG Decision Countdown Ring** counting down toward the Decision Deadline (`Act Time`).
+- **1-Tap EAP PDF Exporter**: Header & Tab 3 **"📄 Export Safety Report"** button generating clean, branded Incident Command Emergency Action Plan (EAP) PDF reports for local first responders via `html2pdf.js`.
 
 ### **Tab 2: AI Assistant**
 - **Conversational Intelligence**: Powered by Gemini 2.5 deployed on Vertex AI Agent Engine (`reasoningEngines/1691330358496198656`).
