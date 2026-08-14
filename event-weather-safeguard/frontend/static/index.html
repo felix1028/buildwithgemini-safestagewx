@@ -497,7 +497,7 @@
         </div>
         <span class="status-tag" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-size: 0.72rem;">
           <span class="material-symbols-outlined" style="font-size: 0.85rem;">verified</span>
-          Live NWS Radar Overlay
+          Live Radar Overlay
         </span>
       </div>
 
@@ -529,7 +529,7 @@
           <span class="material-symbols-outlined" style="font-size: 1rem;">warning</span>
           ⚠️ WARNING POLYGON ACTIVE
         </span>
-        <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">Live NWS Sync</span>
+        <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">Live Alert Sync</span>
       </div>
       <div class="status-title" id="banner-event-title">Wilmington Island Venue (Savannah, GA)</div>
       <div class="status-sub" id="banner-event-sub">501 Wilmington Island Rd • Aug 13, 2026 ~6:30 PM EDT • 100 Guests</div>
@@ -595,8 +595,23 @@
     </form>
   </div>
 
-  <!-- TAB 3: SAFETY TOOLS & CONFIGURATION (FORMERLY VENUE MAP) -->
+  <!-- TAB 3: SAFETY TOOLS & CONFIGURATION -->
   <div id="venue-pane" class="tab-pane">
+
+    <!-- Venue Location & Map Reference Card (Moved to Top) -->
+    <div class="tool-card">
+      <div class="tool-title" id="tab3-venue-title">
+        <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
+        501 Wilmington Island Road, Savannah, GA 31410
+      </div>
+      <div class="map-box">
+        <iframe id="tab3-venue-iframe" src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
+      </div>
+      <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+        <strong>Primary Sturdy Shelter:</strong> Main interior venue hall & clubhouse structure.<br>
+        <strong>Coastal Safety Rule:</strong> Direct guests indoors into permanent structure at first sign of thunder or lightning within 20 miles.
+      </div>
+    </div>
 
     <!-- Tool: Warning Radius Distance Control -->
     <div class="tool-card" style="border-color: #f59e0b; background: #fffbeb;">
@@ -628,17 +643,17 @@
       </div>
     </div>
 
-    <!-- Tool 1: Official NWS Event Ready Evacuation & Sheltering Decision Tool -->
+    <!-- Tool 1: Evacuation & Sheltering Decision Tool -->
     <div class="tool-card" style="border-color: var(--accent);">
       <div class="tool-title" style="display: flex; justify-content: space-between; align-items: center;">
         <span style="display: flex; align-items: center; gap: 0.5rem;">
           <span class="material-symbols-outlined" style="color: var(--accent);">directions_run</span>
-          NWS Evacuation & Sheltering Decision Tool
+          Evacuation & Sheltering Decision Tool
         </span>
-        <span style="font-size: 0.72rem; background: var(--accent-light); color: var(--accent-dark); padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700;">NWS Standard</span>
+        <span style="font-size: 0.72rem; background: var(--accent-light); color: var(--accent-dark); padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700;">National Standard</span>
       </div>
       <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.35;">
-        Official NWS 3-step decision math: Alert Time + Physical Evac Time + 25% NWS Safety Cushion vs. Storm Motion Vector.
+        Official 3-step decision math: Alert Time + Physical Evac Time + 25% Safety Cushion vs. Storm Motion Vector.
       </div>
 
       <!-- Step 1: Attendees & Egress Time -->
@@ -659,7 +674,7 @@
           </div>
         </div>
         <div id="nws-step1-summary" style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">
-          Total Evac Time (TET): <span id="nws-tet-val" style="color: var(--accent-dark); font-weight: 800;">18 mins</span> <span style="font-weight:400; font-size:0.72rem; color:var(--text-secondary);">(includes 4m 25% NWS safety cushion)</span>
+          Total Evac Time (TET): <span id="nws-tet-val" style="color: var(--accent-dark); font-weight: 800;">18 mins</span> <span style="font-weight:400; font-size:0.72rem; color:var(--text-secondary);">(includes 4m 25% safety cushion)</span>
         </div>
       </div>
 
@@ -691,9 +706,15 @@
         </div>
       </div>
 
+      <!-- Import Decision Parameters into AI Assistant Button -->
+      <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; background: #8b5cf6 !important; border-color: #7c3aed !important;" onclick="importEvacToAgent()">
+        <span class="material-symbols-outlined">chat_spark</span>
+        Import Decision Parameters into AI Assistant
+      </button>
+
       <!-- Trigger Distance Reference Table Toggle -->
       <details style="font-size: 0.78rem; color: var(--text-secondary); cursor: pointer; margin-top: 0.2rem;">
-        <summary style="font-weight: 700; color: var(--accent);">📊 View NWS Storm Speed vs. Trigger Distance Lookup Table</summary>
+        <summary style="font-weight: 700; color: var(--accent);">📊 View Storm Speed vs. Trigger Distance Lookup Table</summary>
         <div id="nws-matrix-table-container" style="margin-top: 0.5rem; overflow-x: auto;">
         </div>
       </details>
@@ -706,7 +727,7 @@
         PA Script Broadcast Generator
       </div>
       <div style="font-size: 0.82rem; color: var(--text-secondary);">
-        Pre-approved NWS fill-in-the-blank statements for instant stadium/event announcements.
+        Pre-approved fill-in-the-blank statements for instant stadium/event announcements.
       </div>
       <button class="btn-outline" onclick="openPA('lightning')">
         <span>⚡ Lightning Evacuation Announcement</span>
@@ -720,21 +741,6 @@
         <span>📢 General Weather Advisory Broadcast</span>
         <span class="material-symbols-outlined">chevron_right</span>
       </button>
-    </div>
-
-    <!-- Venue Location & Map Reference Card -->
-    <div class="tool-card">
-      <div class="tool-title" id="tab3-venue-title">
-        <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
-        501 Wilmington Island Road, Savannah, GA 31410
-      </div>
-      <div class="map-box">
-        <iframe id="tab3-venue-iframe" src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
-      </div>
-      <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
-        <strong>Primary Sturdy Shelter:</strong> Main interior venue hall & clubhouse structure.<br>
-        <strong>Coastal Safety Rule:</strong> Direct guests indoors into permanent structure at first sign of thunder or lightning within 20 miles.
-      </div>
     </div>
 
   </div>
@@ -936,6 +942,33 @@
       html += `</tbody></table>`;
       matrixContainer.innerHTML = html;
     }
+  }
+
+  function importEvacToAgent() {
+    const count = parseInt(document.getElementById('attendees-count')?.value) || 100;
+    const alertTime = parseInt(document.getElementById('alert-time-input')?.value) || 4;
+    const evacTime = parseInt(document.getElementById('evac-time-input')?.value) || 10;
+    const tetEl = document.getElementById('nws-tet-val');
+    const tet = tetEl ? tetEl.innerText : '18 mins';
+    const stormSpeed = parseInt(document.getElementById('storm-speed-input')?.value) || 40;
+    const stormDist = parseInt(document.getElementById('storm-dist-input')?.value) || 12;
+    const triggerDist = document.getElementById('nws-trigger-dist-val')?.innerText || '20 Miles';
+    const tua = document.getElementById('nws-tua-val')?.innerText || '18 mins';
+    const actTime = document.getElementById('nws-act-time-val')?.innerText || 'Current Time';
+
+    const promptText = `EVACUATION & SHELTERING DECISION PARAMETERS (Evacuation & Sheltering Decision Tool):
+• Attendees: ${count} guests
+• Alert/PA Broadcast Time: ${alertTime} mins
+• Physical Evac Walk Time: ${evacTime} mins
+• Total Evacuation Time (TET with 25% safety cushion): ${tet}
+• Storm Speed Vector: ${stormSpeed} MPH (${stormDist} mi from 8-mi ring)
+• Trigger Distance: ${triggerDist}
+• Time Until Arrival (TUA at 8-mi ring): ${tua}
+• Decision Deadline (Act Time): ${actTime}
+
+Please import and acknowledge these parameters for future decision making and evacuation monitoring.`;
+
+    sendQuickPrompt(promptText);
   }
 
   function sendQuickPrompt(promptText) {
