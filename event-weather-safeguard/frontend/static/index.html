@@ -471,11 +471,10 @@
 
 <nav class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('safeguard-pane', this)">
-    <span class="material-symbols-outlined">event</span>
-    My Event
+    <span class="material-symbols-outlined">radar</span>
+    Threat Monitor
   </button>
   <button class="tab-btn" onclick="switchTab('chat-pane', this)">
-    <span class="material-symbols-outlined">chat_spark</span>
     AI Assistant
   </button>
   <button class="tab-btn" onclick="switchTab('venue-pane', this)">
@@ -558,7 +557,7 @@
   <div id="chat-pane" class="tab-pane">
     <div class="chat-history" id="chat-history">
       <div class="chat-msg agent" id="initial-agent-msg">
-        <strong>⚡ SafeStageWX Assistant</strong><br>
+        <strong>SafeStageWX Assistant</strong><br>
         Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
         How can I help protect your venue and attendees today?
       </div>
@@ -1208,7 +1207,7 @@
     // Update Initial Agent Chat Welcome Message
     const agentMsg = document.getElementById('initial-agent-msg');
     if (agentMsg) {
-      agentMsg.innerHTML = `<strong>⚡ SafeStageWX Assistant</strong><br>Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>${address}</strong> (${title}, ${guests} guests, ${date} at ~${time}, 20-Mile Radius Buffer Active).<br><br>How can I help protect your venue and attendees today?`;
+      agentMsg.innerHTML = `<strong>SafeStageWX Assistant</strong><br>Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>${address}</strong> (${title}, ${guests} guests, ${date} at ~${time}, 20-Mile Radius Buffer Active).<br><br>How can I help protect your venue and attendees today?`;
     }
 
     // Update Attendee Count
