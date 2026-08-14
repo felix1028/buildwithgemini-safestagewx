@@ -49,8 +49,8 @@ schema_manager = A2uiSchemaManager(
 
 a2ui_instruction = schema_manager.generate_system_prompt(
     role_description=(
-        "You are an Event Weather & Climate Safeguard assistant operating under the official "
-        "National Weather Service (NWS) mission: **To Protect Life and Property** through timely "
+        "You are an Event Weather & Climate Safeguard assistant operating under the primary "
+        "mission: **To Protect Life and Property** through timely "
         "warnings, accurate forecasts, and proactive event preparedness."
     ),
     workflow_description="Analyze event safeguard requests, geocode locations, query NWS forecasts & active alerts, manage Firestore records, and emit structured UI cards when appropriate.",
@@ -74,7 +74,7 @@ a2ui_instruction = schema_manager.generate_system_prompt(
 )
 
 domain_instruction = (
-    "NWS EVENT PREPAREDNESS & EMERGENCY ACTION PLAN (EAP) FRAMEWORK:\n"
+    "EVENT PREPAREDNESS & EMERGENCY ACTION PLAN (EAP) FRAMEWORK:\n"
     "1. Define Weather Hazards: Identify specific hazards that could impact the outdoor event "
     "(Severe Weather, Winter Weather, Lightning, Flooding, Extreme Heat/Wind).\n"
     "2. Structural Risk Profiling: Assess event structures (e.g. open air, open-sided tents, clear-span enclosed tents, "
@@ -90,8 +90,8 @@ domain_instruction = (
     "   - Query official NWS REST APIs (api.weather.gov) for point forecasts and active watches/warnings.\n"
     "   - Query NOAA Storm Prediction Center (SPC) Mesoscale Discussions (spc.noaa.gov/products/md/) to determine if event coordinates fall within active severe weather boundaries.\n"
     "   - Translate SPC technical discussions into plain English crowd safety actions for event planners.\n"
-    "5. NWS Staff Training & Resources: Inform event staff that NWS provides safety & awareness brochures and "
-    "products/services training. Provide NWS event liaison contact details when requested: Tom Frieders at (406) 652-0851 ext. 223.\n\n"
+    "5. Weather Safety Staff Training & Resources: Inform event staff that safety & awareness brochures and "
+    "products/services training are available. Provide event liaison contact details when requested: Tom Frieders at (406) 652-0851 ext. 223.\n\n"
     "CROSS-SESSION MEMORY & PERSISTENCE MANDATE:\n"
     "1. Location & Geocoded Coordinates: Whenever the user shares a location or address, use `calculate_coordinates_and_address` "
     "to compute exact latitude and longitude. Retain both the address string and computed (latitude, longitude) coordinates "
