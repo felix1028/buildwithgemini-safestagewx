@@ -611,7 +611,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="font-weight: 700; font-size: 0.92rem; color: #0369a1; display: flex; align-items: center; gap: 0.4rem;">
           <span class="material-symbols-outlined" style="color: #0284c7;">feed</span>
-          <span>NWS Area Forecast Discussion (AFD)</span>
+          <span>NWS Meteorologist Forecast Briefing</span>
         </div>
         <a id="afd-web-link" href="https://forecast.weather.gov/product.php?site=CHS&product=AFD&issuedby=CHS" target="_blank" rel="noopener noreferrer" style="font-size: 0.75rem; color: #0284c7; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 0.2rem; background: #e0f2fe; padding: 3px 8px; border-radius: 12px; border: 1px solid #bae6fd;">
           <span class="material-symbols-outlined" style="font-size: 0.85rem;">open_in_new</span>
@@ -622,10 +622,18 @@
         <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 6px; font-weight: 700;">WFO Office: <strong id="afd-cwa-badge">CHS (Charleston, SC)</strong></span>
         <span id="afd-time-stamp" style="color: #64748b; font-size: 0.72rem;">Issued: Loading...</span>
       </div>
-      <details id="afd-details-box" style="margin-top: 0.5rem; font-size: 0.78rem; color: #334155; cursor: pointer;" open>
-        <summary style="font-weight: 700; color: #0284c7;">📖 Read Latest NWS Meteorologist Discussion Summary</summary>
-        <pre id="afd-text-summary" style="margin-top: 0.5rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.75rem; font-family: monospace; font-size: 0.72rem; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow-y: auto; color: #1e293b;">
-Loading NWS Area Forecast Discussion from Charleston SC WFO...
+
+      <!-- Plain English Briefing Summary -->
+      <div id="afd-plain-summary-box" style="margin-top: 0.6rem; background: #ffffff; border: 1px solid #93c5fd; border-radius: 8px; padding: 0.75rem; font-size: 0.80rem; color: #1e293b; line-height: 1.5;">
+        <div id="afd-plain-text">
+          Loading plain-English NWS meteorologist briefing...
+        </div>
+      </div>
+
+      <details id="afd-details-box" style="margin-top: 0.5rem; font-size: 0.75rem; color: #64748b; cursor: pointer;">
+        <summary style="font-weight: 600; color: #0284c7;">🔍 View Raw Technical NWS Discussion Text Product</summary>
+        <pre id="afd-text-summary" style="margin-top: 0.4rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.6rem; font-family: monospace; font-size: 0.70rem; white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto; color: #334155;">
+Loading raw technical text...
         </pre>
       </details>
     </div>
@@ -1128,6 +1136,7 @@ Please import and acknowledge these parameters for future decision making and ev
     const defaultLat = lat || 32.0008;
     const defaultLon = lon || -80.9735;
     const summaryEl = document.getElementById('afd-text-summary');
+    const plainBoxEl = document.getElementById('afd-plain-text');
     const timeEl = document.getElementById('afd-time-stamp');
     const cwaEl = document.getElementById('afd-cwa-badge');
     const linkEl = document.getElementById('afd-web-link');
@@ -1147,6 +1156,16 @@ Please import and acknowledge these parameters for future decision making and ev
       if (data.issuance_time && timeEl) {
         const d = new Date(data.issuance_time);
         timeEl.innerText = `Issued: ${d.toLocaleString()}`;
+      }
+
+      if (data.plain_english_summary && plainBoxEl) {
+        let formatted = data.plain_english_summary
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/^• (.*)$/gm, '<div style="margin-left:0.5rem; margin-top:0.25rem;">• $1</div>')
+          .replace(/📢 (.*)$/gm, '<div style="font-weight:700; color:#0369a1; font-size:0.85rem;">📢 $1</div>')
+          .replace(/🎯 (.*)$/gm, '<div style="font-weight:700; margin-top:0.4rem; color:#0f172a;">🎯 $1</div>')
+          .replace(/🚨 (.*)$/gm, '<div style="font-weight:700; margin-top:0.5rem; color:#b91c1c;">🚨 $1</div>');
+        plainBoxEl.innerHTML = formatted;
       }
 
       if (data.product_text) {
