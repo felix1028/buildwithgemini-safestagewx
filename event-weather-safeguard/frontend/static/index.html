@@ -606,6 +606,38 @@
       </div>
     </div>
 
+    <!-- 3.5 BOTTOM CARD: NWS HAZARDOUS WEATHER OUTLOOK (HWO) CARD (Hidden if no active HWO for local office) -->
+    <div class="tool-card" id="hwo-card-container" style="margin-top: 0.85rem; border-color: #d97706; background: #fffbeb; display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-weight: 700; font-size: 0.92rem; color: #b45309; display: flex; align-items: center; gap: 0.4rem;">
+          <span class="material-symbols-outlined" style="color: #d97706;">warning</span>
+          <span>NWS Local Hazardous Weather Outlook (HWO)</span>
+        </div>
+        <a id="hwo-web-link" href="#" target="_blank" rel="noopener noreferrer" style="font-size: 0.75rem; color: #b45309; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 0.2rem; background: #fef3c7; padding: 3px 8px; border-radius: 12px; border: 1px solid #fde68a;">
+          <span class="material-symbols-outlined" style="font-size: 0.85rem;">open_in_new</span>
+          Official NWS HWO Page
+        </a>
+      </div>
+      <div style="font-size: 0.78rem; color: #0f172a; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+        <span style="background: #fef3c7; color: #b45309; padding: 2px 6px; border-radius: 6px; font-weight: 700;">WFO Office: <strong id="hwo-cwa-badge">---</strong></span>
+        <span id="hwo-time-stamp" style="color: #78350f; font-size: 0.72rem;">Issued: Loading...</span>
+      </div>
+
+      <!-- Plain English HWO Summary -->
+      <div id="hwo-plain-summary-box" style="margin-top: 0.6rem; background: #ffffff; border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem; font-size: 0.80rem; color: #1e293b; line-height: 1.5;">
+        <div id="hwo-plain-text">
+          Loading Hazardous Weather Outlook...
+        </div>
+      </div>
+
+      <details id="hwo-details-box" style="margin-top: 0.5rem; font-size: 0.75rem; color: #78350f; cursor: pointer;">
+        <summary style="font-weight: 600; color: #b45309;">🔍 View Raw Technical NWS Hazardous Weather Outlook Text</summary>
+        <pre id="hwo-text-summary" style="margin-top: 0.4rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 0.6rem; font-family: monospace; font-size: 0.70rem; white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto; color: #451a03;">
+Loading raw technical text...
+        </pre>
+      </details>
+    </div>
+
     <!-- 4. BOTTOM CARD: NWS AREA FORECAST DISCUSSION (AFD) CARD (Strictly local office, hidden if none available) -->
     <div class="tool-card" id="afd-card-container" style="margin-top: 0.85rem; border-color: #0284c7; background: #f0f9ff; display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1214,8 +1246,62 @@ Please import and acknowledge these parameters for future decision making and ev
     }
   }
 
+  async function loadNWSHazardousWeatherOutlook(lat, lon) {
+    const defaultLat = lat || 32.0008;
+    const defaultLon = lon || -80.9735;
+    const cardContainer = document.getElementById('hwo-card-container');
+    const summaryEl = document.getElementById('hwo-text-summary');
+    const plainBoxEl = document.getElementById('hwo-plain-text');
+    const timeEl = document.getElementById('hwo-time-stamp');
+    const cwaEl = document.getElementById('hwo-cwa-badge');
+    const linkEl = document.getElementById('hwo-web-link');
+
+    try {
+      const res = await fetch(`/api/hwo?lat=${defaultLat}&lon=${defaultLon}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (!data.has_hwo || !data.product_text) {
+        if (cardContainer) cardContainer.style.display = 'none';
+        return;
+      }
+
+      // Local office HWO exists: reveal card
+      if (cardContainer) cardContainer.style.display = 'block';
+
+      if (data.cwa) {
+        if (cwaEl) cwaEl.innerText = `${data.cwa}`;
+        const webUrl = data.web_url || `https://forecast.weather.gov/product.php?site=${data.cwa}&product=HWO&issuedby=${data.cwa}`;
+        if (linkEl) linkEl.href = webUrl;
+      }
+
+      if (data.issuance_time && timeEl) {
+        const d = new Date(data.issuance_time);
+        timeEl.innerText = `Issued: ${d.toLocaleString()}`;
+      }
+
+      if (data.plain_english_summary && plainBoxEl) {
+        let formatted = data.plain_english_summary
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/^• (.*)$/gm, '<div style="margin-left:0.5rem; margin-top:0.25rem;">• $1</div>')
+          .replace(/🎯 (.*)$/gm, '<div style="font-weight:700; color:#0f172a;">🎯 $1</div>')
+          .replace(/📅 (.*)$/gm, '<div style="font-weight:700; margin-top:0.5rem; color:#0f172a;">📅 $1</div>')
+          .replace(/🚨 (.*)$/gm, '<div style="font-weight:700; margin-top:0.5rem; color:#b91c1c;">🚨 $1</div>');
+        plainBoxEl.innerHTML = formatted;
+      }
+
+      if (summaryEl) {
+        summaryEl.innerText = data.product_text;
+      }
+    } catch (e) {
+      console.warn("No active NWS Hazardous Weather Outlook for local office:", e);
+      if (cardContainer) cardContainer.style.display = 'none';
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     loadNWSForecastDiscussion(currentLat, currentLon);
+    loadNWSHazardousWeatherOutlook(currentLat, currentLon);
   });
 
   function exportSafetyReport() {
@@ -1504,9 +1590,10 @@ Please import and acknowledge these parameters for future decision making and ev
     document.getElementById('attendees-count').value = guests;
     calculateEvacTime();
 
-    // Check Live NWS Alerts and Local Office Forecast Discussion for newly resolved coordinates
+    // Check Live NWS Alerts, Forecast Discussion, & HWO for newly resolved coordinates
     await checkLiveNWSAlerts(currentLat, currentLon);
     await loadNWSForecastDiscussion(currentLat, currentLon);
+    await loadNWSHazardousWeatherOutlook(currentLat, currentLon);
 
     // Save in LocalStorage
     localStorage.setItem('safestagewx_event', JSON.stringify({ title, address, date, time, guests, lat: currentLat, lon: currentLon }));
@@ -1670,9 +1757,10 @@ Please import and acknowledge these parameters for future decision making and ev
     document.getElementById('attendees-count').value = guests;
     calculateEvacTime();
 
-    // Check Live NWS Alerts & Forecast Discussion for saved venue
+    // Check Live NWS Alerts, Forecast Discussion, & HWO for saved venue
     checkLiveNWSAlerts(currentLat, currentLon);
     loadNWSForecastDiscussion(currentLat, currentLon);
+    loadNWSHazardousWeatherOutlook(currentLat, currentLon);
   }
 
   // Auto-load saved event or show onboarding modal on first visit

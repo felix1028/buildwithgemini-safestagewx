@@ -307,6 +307,119 @@ async def get_afd(lat: float = 32.0008, lon: float = -80.9735):
             return JSONResponse({"has_briefing": False, "reason": str(e)})
 
 
+def summarize_hwo_plain_english(raw_text: str) -> str:
+    """Parses raw NWS Hazardous Weather Outlook (HWO) text product and formats into clean plain English with threat highlights."""
+    if not raw_text or not raw_text.strip():
+        return "No Hazardous Weather Outlook text provided."
+
+    day_one = ""
+    days_extended = ""
+
+    d1_match = re.search(r'\.DAY ONE\.\.\.([\s\S]*?)(?=\.DAYS TWO THROUGH SEVEN|\.SPOTTER|\$\$)', raw_text, re.IGNORECASE)
+    if d1_match:
+        day_one = d1_match.group(1).strip()
+
+    d2_match = re.search(r'\.DAYS TWO THROUGH SEVEN\.\.\.([\s\S]*?)(?=\.SPOTTER|\$\$)', raw_text, re.IGNORECASE)
+    if d2_match:
+        days_extended = d2_match.group(1).strip()
+
+    def clean_sec(txt):
+        txt = re.sub(r'Weather hazards expected\.\.\.', '', txt, flags=re.IGNORECASE)
+        txt = re.sub(r'DISCUSSION\.\.\.', '\n**Discussion:**', txt, flags=re.IGNORECASE)
+        lines = [line.strip() for line in txt.split('\n') if line.strip()]
+        out = []
+        for line in lines:
+            if line.startswith('Level ') or 'Risk' in line:
+                out.append(f"• **{line}**")
+            elif line.startswith('**Discussion:**'):
+                out.append(line)
+            elif line.startswith('.'):
+                out.append(f"\n**{line.replace('.', '').strip()}**")
+            else:
+                out.append(line)
+        return "\n".join(out)
+
+    summary_lines = []
+
+    if day_one:
+        summary_lines.append("🎯 **Day 1 Hazardous Weather Outlook (Immediate / Today):**")
+        summary_lines.append(clean_sec(day_one))
+
+    if days_extended:
+        summary_lines.append("\n📅 **Days 2–7 Extended Hazardous Weather Outlook:**")
+        summary_lines.append(clean_sec(days_extended))
+
+    threats = []
+    upper_txt = raw_text.upper()
+    if 'DAMAGING WIND' in upper_txt or 'WIND RISK' in upper_txt:
+        threats.append(("💨 DAMAGING WIND HAZARD", "Damaging Wind Risk noted in local HWO."))
+    if 'FLOODING' in upper_txt or 'FLASH FLOOD' in upper_txt:
+        threats.append(("🌊 FLOODING / HEAVY RAIN HAZARD", "Elevated or Significant Flooding Risk indicated in local HWO."))
+    if 'THUNDERSTORM' in upper_txt or 'SEVERE' in upper_txt:
+        threats.append(("⚡ SEVERE THUNDERSTORM HAZARD", "Thunderstorm Risk indicated in local HWO."))
+    if 'HEAT' in upper_txt:
+        threats.append(("🔥 EXCESSIVE HEAT HAZARD", "Excessive Heat Risk indicated in local HWO."))
+
+    if threats:
+        summary_lines.append("\n🚨 **Highlighted HWO Threat Warnings:**")
+        for title, desc in threats:
+            summary_lines.append(f"• **{title}**: {desc}")
+
+    return "\n".join(summary_lines)
+
+
+@app.get("/api/hwo")
+async def get_hwo(lat: float = 32.0008, lon: float = -80.9735):
+    """Fetches real-time NWS Hazardous Weather Outlook (HWO) strictly for latitude & longitude coordinates' local office."""
+    headers = {"User-Agent": "EventWeatherSafeguard/1.0 (contact@example.com)"}
+    async with httpx.AsyncClient(timeout=10) as client:
+        try:
+            pts_res = await client.get(f"https://api.weather.gov/points/{lat:.4f},{lon:.4f}", headers=headers)
+            if pts_res.status_code != 200:
+                return JSONResponse({"has_hwo": False, "reason": f"NWS points API error: {pts_res.status_code}"})
+
+            props = pts_res.json().get("properties", {})
+            cwa = props.get("cwa")
+            office_url = props.get("forecastOffice")
+
+            if not cwa:
+                return JSONResponse({"has_hwo": False, "reason": "No local CWA office found for coordinates"})
+
+            web_url = f"https://forecast.weather.gov/product.php?site={cwa}&product=HWO&issuedby={cwa}"
+
+            hwo_res = await client.get(f"https://api.weather.gov/products/types/HWO/locations/{cwa}", headers=headers)
+            if hwo_res.status_code != 200:
+                return JSONResponse({"has_hwo": False, "cwa": cwa, "reason": "No HWO product endpoint found for local office"})
+
+            graph = hwo_res.json().get("@graph", [])
+            if not graph:
+                return JSONResponse({"has_hwo": False, "cwa": cwa, "reason": "No active Hazardous Weather Outlooks found for local office"})
+
+            latest_id = graph[0].get("id")
+            prod_res = await client.get(f"https://api.weather.gov/products/{latest_id}", headers=headers)
+            if prod_res.status_code != 200:
+                return JSONResponse({"has_hwo": False, "cwa": cwa, "reason": "Failed to load local HWO product details"})
+
+            prod_data = prod_res.json()
+            raw_text = prod_data.get("productText", "")
+            if not raw_text or not raw_text.strip():
+                return JSONResponse({"has_hwo": False, "cwa": cwa, "reason": "Empty HWO product text"})
+
+            plain_summary = summarize_hwo_plain_english(raw_text)
+
+            return JSONResponse({
+                "has_hwo": True,
+                "cwa": cwa,
+                "forecast_office": office_url,
+                "web_url": web_url,
+                "issuance_time": prod_data.get("issuanceTime"),
+                "product_text": raw_text,
+                "plain_english_summary": plain_summary,
+            })
+        except Exception as e:
+            return JSONResponse({"has_hwo": False, "reason": str(e)})
+
+
 # Serve the chat UI (keep this mount last so /chat wins).
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
