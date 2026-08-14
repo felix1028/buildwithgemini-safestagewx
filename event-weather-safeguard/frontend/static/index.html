@@ -569,9 +569,9 @@
         Expanded monitoring zone due to nearby convective storms in Savannah area.
       </div>
       <div class="tool-row" style="gap: 0.4rem;">
-        <button id="radius-btn-10" class="btn-outline" style="flex:1; text-align:center; justify-content:center; color:#78350f; border-color:#f59e0b;" onclick="setRadius(10)">10 Miles</button>
-        <button id="radius-btn-20" class="btn-primary" style="flex:1; background:#d97706; color:#ffffff; border-color:#d97706; text-align:center; justify-content:center;" onclick="setRadius(20)">20 Miles (Active)</button>
-        <button id="radius-btn-30" class="btn-outline" style="flex:1; text-align:center; justify-content:center; color:#78350f; border-color:#f59e0b;" onclick="setRadius(30)">30 Miles</button>
+        <button id="radius-btn-10" class="btn-outline" style="flex:1; text-align:center; justify-content:center; color:#78350f; border-color:#f59e0b; background:#ffffff;" onclick="setRadius(10)">10 Miles</button>
+        <button id="radius-btn-20" class="btn-primary" style="flex:1; background:#c2410c !important; color:#ffffff !important; border-color:#9a3412 !important; text-align:center; justify-content:center; font-weight:700;" onclick="setRadius(20)">20 Miles (Active)</button>
+        <button id="radius-btn-30" class="btn-outline" style="flex:1; text-align:center; justify-content:center; color:#78350f; border-color:#f59e0b; background:#ffffff;" onclick="setRadius(30)">30 Miles</button>
       </div>
     </div>
 
@@ -931,24 +931,29 @@
 
   function setRadius(miles) {
     activeRadiusMiles = miles;
-    document.getElementById('radius-val').innerText = miles + " Mile Radius";
+    const radValEl = document.getElementById('radius-val');
+    if (radValEl) radValEl.innerText = miles + " Mile Radius";
 
-    // Update button visual styles
+    // Update button visual styles instantly with dark orange (#c2410c) for active selection
     const radii = [10, 20, 30];
     radii.forEach(r => {
       const btn = document.getElementById(`radius-btn-${r}`);
       if (btn) {
         if (r === miles) {
           btn.className = 'btn-primary';
-          btn.style.background = '#d97706';
-          btn.style.color = '#ffffff';
-          btn.style.borderColor = '#d97706';
+          btn.style.setProperty('background', '#c2410c', 'important');
+          btn.style.setProperty('background-color', '#c2410c', 'important');
+          btn.style.setProperty('color', '#ffffff', 'important');
+          btn.style.setProperty('border-color', '#9a3412', 'important');
+          btn.style.setProperty('font-weight', '700', 'important');
           btn.innerText = `${r} Miles (Active)`;
         } else {
           btn.className = 'btn-outline';
-          btn.style.background = '#ffffff';
-          btn.style.color = '#78350f';
-          btn.style.borderColor = '#f59e0b';
+          btn.style.setProperty('background', '#ffffff', 'important');
+          btn.style.setProperty('background-color', '#ffffff', 'important');
+          btn.style.setProperty('color', '#78350f', 'important');
+          btn.style.setProperty('border-color', '#f59e0b', 'important');
+          btn.style.setProperty('font-weight', '500', 'important');
           btn.innerText = `${r} Miles`;
         }
       }
@@ -960,8 +965,6 @@
       qBtn1.onclick = () => sendQuickPrompt(`Check current SPC mesoscale discussions and NWS alerts within a ${miles} mile radius of ${currentVenueAddress} (coordinates ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}) and advise on safety actions.`);
       qBtn1.innerHTML = `<span>🔍 ${miles}-Mile Radius Threat Check (${currentLat.toFixed(3)}, ${currentLon.toFixed(3)})</span><span class="material-symbols-outlined">send</span>`;
     }
-
-    alert(`Warning radius threshold updated to ${miles} Miles for ${currentVenueAddress}.`);
   }
 
   function openPA(type) {
