@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
 import datetime
 import re
+import uuid
 from zoneinfo import ZoneInfo
 
 import requests
@@ -22,8 +24,10 @@ from google.adk.agents import Agent
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.apps import App
 from google.adk.models import Gemini
+from google.adk.tools import ToolContext
 from google.adk.tools.preload_memory_tool import PreloadMemoryTool
-from google.cloud import firestore
+from google import genai
+from google.cloud import firestore, storage
 from google.genai import types
 
 from google.adk.code_executors.agent_engine_sandbox_code_executor import (
@@ -35,6 +39,7 @@ from a2ui.schema.manager import A2uiSchemaManager
 from app.a2ui_utils import a2ui_callback
 
 PROJECT_ID = "qwiklabs-gcp-04-72024f788a4d"
+BUCKET_NAME = "qwiklabs-gcp-04-72024f788a4d-static-assets-bucket"
 AGENT_ENGINE_RESOURCE_NAME = "projects/746320986672/locations/us-east1/reasoningEngines/1691330358496198656"
 MODEL = "gemini-3.6-flash"
 
@@ -111,7 +116,8 @@ domain_instruction = (
     "- Use `get_nws_active_alerts` to query real-time NWS warnings and advisories using stored coordinates or location.\n"
     "- Use `get_spc_mesoscale_discussions` to check active NOAA SPC Mesoscale Discussions, perform boundary polygon checks, and translate discussions into crowd safety guidance.\n"
     "- Use `save_event_safeguard` to persist address, coordinates, structure type, and risks to Firestore.\n"
-    "- Use `get_event_safeguards` to retrieve saved event records."
+    "- Use `get_event_safeguards` to retrieve saved event records.\n"
+    "- Use `generate_event_safety_video` to generate short animated weather safety and hazard advisory videos for outdoor events using Google's Omni model (gemini-omni-flash-preview) in the global region."
 )
 
 
@@ -590,6 +596,56 @@ def get_event_safeguards(location: str = "") -> str:
     return f"Retrieved {len(results)} event safeguard(s) from Firestore:\n\n" + "\n\n".join(output)
 
 
+def generate_event_safety_video(prompt: str, tool_context: ToolContext = None) -> str:
+    """Generates a short animated event weather safety advisory or hazard video using Google's Omni model (gemini-omni-flash-preview) in the global region.
+    Saves the generated video as an artifact via tool_context and uploads the video bytes to public Cloud Storage, returning its public HTTPS URL.
+
+    Args:
+        prompt: Description of the event weather safety video to generate (e.g. 'Short 3-second video showing dark storm clouds over an outdoor music festival and attendees moving safely into a sturdy indoor shelter.').
+        tool_context: ADK ToolContext provided automatically by the agent runtime.
+
+    Returns:
+        Formatted string containing the public HTTPS URL of the generated video uploaded to Cloud Storage.
+    """
+    try:
+        client = genai.Client(vertexai=True, project=PROJECT_ID, location="global")
+        res = client.interactions.create(
+            model="gemini-omni-flash-preview",
+            input=prompt,
+        )
+
+        video_bytes = None
+        for step in getattr(res, "steps", []):
+            if hasattr(step, "content"):
+                for item in step.content:
+                    if hasattr(item, "data") and item.data:
+                        raw_data = item.data
+                        if isinstance(raw_data, str):
+                            video_bytes = base64.b64decode(raw_data)
+                        else:
+                            video_bytes = raw_data
+
+        if not video_bytes:
+            return "Failed to extract generated video bytes from gemini-omni-flash-preview response."
+
+        video_id = uuid.uuid4().hex[:8]
+        filename_obj = f"videos/event_safety_{video_id}.mp4"
+
+        if tool_context and hasattr(tool_context, "save_artifact"):
+            part = types.Part.from_bytes(data=video_bytes, mime_type="video/mp4")
+            tool_context.save_artifact(f"event_safety_{video_id}.mp4", part)
+
+        storage_client = storage.Client(project=PROJECT_ID)
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(filename_obj)
+        blob.upload_from_string(video_bytes, content_type="video/mp4")
+
+        public_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{filename_obj}"
+        return f"Generated event weather safety video successfully. Public URL: {public_url}"
+    except Exception as e:
+        return f"Error generating event weather safety video with gemini-omni-flash-preview: {e}"
+
+
 async def generate_memories_callback(callback_context: CallbackContext):
     """Callback to send session events to Memory Bank after each turn."""
     await callback_context.add_session_to_memory()
@@ -613,6 +669,7 @@ root_agent = Agent(
         get_spc_mesoscale_discussions,
         save_event_safeguard,
         get_event_safeguards,
+        generate_event_safety_video,
     ],
     code_executor=sandbox_code_executor,
     after_model_callback=a2ui_callback,
