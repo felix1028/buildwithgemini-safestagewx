@@ -536,6 +536,13 @@
       <div id="active-alerts-list" style="margin-top: 0.5rem; font-size: 0.82rem; color: #fecaca; background: rgba(0,0,0,0.3); padding: 0.4rem 0.6rem; border-radius: 8px;">
         🚨 <strong>Active NWS Warnings at Venue (32.001° N, -80.974° W):</strong> Severe Thunderstorm Warning • Extreme Heat Warning
       </div>
+
+      <!-- Actionable Call To Action Recommendation Box -->
+      <div id="call-to-action-box" style="margin-top: 0.5rem; font-size: 0.83rem; color: #fef08a; background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; padding: 0.65rem 0.75rem; border-radius: 8px; font-weight: 500; line-height: 1.45;">
+        📢 <strong>RECOMMENDED SAFETY ACTION:</strong><br>
+        💧 <strong>Heat Safety:</strong> Direct guests to stay in cool shaded/indoor areas and provide free hydration/water stations to prevent heat stroke.<br>
+        ⚡ <strong>Severe Weather / Lightning:</strong> Direct guests to permanent indoor sturdy shelter and prepare PA broadcast.
+      </div>
     </div>
 
     <!-- Action Grid: Active Warning Polygon & Lead Time To Shelter -->
@@ -1101,6 +1108,33 @@
     closeEventSetupModal();
   }
 
+  function getCallToActionForAlerts(events) {
+    if (!events || events.length === 0) {
+      return "✅ <strong>STATUS NORMAL:</strong> Maintain standard weather monitoring. No active threat polygons at venue coordinates.";
+    }
+    
+    const ctaParts = [];
+    const lowerEvents = events.map(e => e.toLowerCase()).join(' ');
+
+    if (lowerEvents.includes('heat')) {
+      ctaParts.push("💧 <strong>Heat Safety:</strong> Direct guests to stay in cool shaded or indoor areas and provide hydration/water stations to avoid heat stroke.");
+    }
+    if (lowerEvents.includes('thunderstorm') || lowerEvents.includes('lightning') || lowerEvents.includes('tornado') || lowerEvents.includes('storm')) {
+      ctaParts.push("⚡ <strong>Severe Weather / Lightning:</strong> Direct guests to permanent indoor sturdy shelter and prepare PA broadcast.");
+    }
+    if (lowerEvents.includes('wind') || lowerEvents.includes('gale') || lowerEvents.includes('squall')) {
+      ctaParts.push("💨 <strong>High Wind Action:</strong> Lower stage lighting trusses, secure temporary tents/decorations, and enforce 35 MPH stage wind limit.");
+    }
+    if (lowerEvents.includes('flood')) {
+      ctaParts.push("🌊 <strong>Flood Action:</strong> Keep guests away from low-lying areas and ensure clear egress paths to elevated ground.");
+    }
+    if (ctaParts.length === 0) {
+      ctaParts.push("⚠️ <strong>Safety Action:</strong> Review venue Emergency Action Plan, make PA advisory broadcast, and prepare event staff for safety procedures.");
+    }
+
+    return `📢 <strong>RECOMMENDED SAFETY ACTION:</strong><br>${ctaParts.join('<br>')}`;
+  }
+
   // Live NWS Alert Polygon Checker for Coordinates
   async function checkLiveNWSAlerts(lat = currentLat, lon = currentLon) {
     try {
@@ -1112,6 +1146,7 @@
       const features = data.features || [];
       const bannerTag = document.getElementById('banner-tag');
       const alertsList = document.getElementById('active-alerts-list');
+      const ctaBox = document.getElementById('call-to-action-box');
       const mdStatus = document.getElementById('md-status');
 
       if (features.length > 0) {
@@ -1126,6 +1161,12 @@
         if (alertsList) {
           alertsList.innerHTML = `🚨 <strong>Active NWS Warnings at Venue (${lat.toFixed(3)}° N, ${lon.toFixed(3)}° W):</strong> ${eventSummary}`;
         }
+        if (ctaBox) {
+          ctaBox.style.background = 'rgba(234, 179, 8, 0.18)';
+          ctaBox.style.borderColor = '#eab308';
+          ctaBox.style.color = '#fef08a';
+          ctaBox.innerHTML = getCallToActionForAlerts(events);
+        }
         if (mdStatus) {
           mdStatus.style.color = '#ef4444';
           mdStatus.innerText = `⚠️ ${events[0] || 'Active Polygon'}`;
@@ -1138,6 +1179,12 @@
         
         if (alertsList) {
           alertsList.innerHTML = `✅ No active NWS warning polygons directly affecting coordinates.`;
+        }
+        if (ctaBox) {
+          ctaBox.style.background = 'rgba(16, 185, 129, 0.15)';
+          ctaBox.style.borderColor = '#10b981';
+          ctaBox.style.color = '#a7f3d0';
+          ctaBox.innerHTML = getCallToActionForAlerts([]);
         }
         if (mdStatus) {
           mdStatus.style.color = 'var(--text-primary)';
