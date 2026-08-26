@@ -80,8 +80,36 @@ SafeStageWX leverages the full Google Cloud & Vertex AI Agent Development Kit (A
 
 ---
 
+## 🛠️ Languages & Technologies Used
+
+### 💻 Programming Languages
+*   **Python**: Core agent backend reasoning loops (`app/agent.py`), database seeding (`scripts/seed_firestore.py`), and FastAPI proxy (`frontend/main.py`).
+*   **JavaScript (ES6)**: Tab switching, interactive maps, and card rendering logic in the frontend (`frontend/static/app.js`).
+*   **HTML5 & CSS3**: Glassmorphism dashboard interface.
+
+### 🛠️ Frameworks & Core Libraries
+*   **FastAPI**: Runs both the frontend proxy and the agent backend.
+*   **Google Agent Development Kit (ADK)**: Scaffolds the agent backend, system prompts, memory, and tools.
+*   **`a2a-sdk` (Agent-to-Agent)**: Transmits messages and rendering events.
+*   **`a2ui-agent-sdk`**: Handles defining and serializing rich, interactive card component structures.
+*   **Uvicorn & uv**: Server runtime and dependency package management.
+
+### ☁️ Google Cloud & AI Platform
+*   **Vertex AI**: Hosts core models (`gemini-3.6-flash` and `gemini-omni-flash-preview` for safety video generation).
+*   **Cloud Run**: Serves the containerized frontend and backend microservices.
+*   **Cloud Firestore**: Serverless database for saving safety profiles.
+*   **Cloud Storage (GCS)**: Public blob storage hosting generated video advisories.
+*   **Cloud Build & Artifact Registry**: Container build and hosting pipeline.
+
+### 🌍 Third-Party APIs
+*   **National Weather Service (NWS) API**: Real-time severe weather alert monitoring.
+*   **Nominatim**: Geocoding address strings to coordinates.
+*   **Leaflet.js & RainViewer Map**: Renders live weather radar overlay.
+
+---
+
 ## 🚀 Live Links & Resources
 
-- 🌐 **Live Web Application**: [https://event-weather-safeguard-frontend-746320986672.us-east1.run.app](https://event-weather-safeguard-frontend-746320986672.us-east1.run.app)
+- 🌐 **Live Web Application**: [https://safestagewx-frontend-1066893422734.us-central1.run.app](https://safestagewx-frontend-1066893422734.us-central1.run.app)
 - 🐙 **GitHub Repository**: [https://github.com/felix1028/buildwithgemini-safestagewx](https://github.com/felix1028/buildwithgemini-safestagewx)
 - 🎥 **Demo Recording Video**: [demo_video.webm](demo_video.webm) | [demo.gif](demo.gif)

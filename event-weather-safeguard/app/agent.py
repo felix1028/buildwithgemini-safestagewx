@@ -38,9 +38,11 @@ from a2ui.basic_catalog.provider import BasicCatalog
 from a2ui.schema.manager import A2uiSchemaManager
 from app.a2ui_utils import a2ui_callback
 
-PROJECT_ID = "qwiklabs-gcp-04-72024f788a4d"
-BUCKET_NAME = "qwiklabs-gcp-04-72024f788a4d-static-assets-bucket"
-AGENT_ENGINE_RESOURCE_NAME = "projects/746320986672/locations/us-east1/reasoningEngines/1691330358496198656"
+import os
+
+PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-04-72024f788a4d")
+BUCKET_NAME = os.environ.get("GCS_BUCKET_NAME", f"{PROJECT_ID}-static-assets-bucket")
+AGENT_ENGINE_RESOURCE_NAME = os.environ.get("AGENT_ENGINE_RESOURCE_NAME", "projects/746320986672/locations/us-east1/reasoningEngines/1691330358496198656")
 MODEL = "gemini-3.6-flash"
 
 sandbox_code_executor = AgentEngineSandboxCodeExecutor(
