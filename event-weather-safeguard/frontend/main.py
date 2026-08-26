@@ -46,33 +46,45 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-RESOURCE = os.environ.get(
-    "AGENT_ENGINE_RESOURCE_NAME",
-    "projects/746320986672/locations/us-east1/reasoningEngines/1691330358496198656",
-)
-# The agent's app directory (matches agent_directory in agents-cli-manifest.yaml).
 AGENT_DIRECTORY = os.environ.get("AGENT_DIRECTORY", "app")
-# Location is embedded in the resource name: projects/<p>/locations/<loc>/reasoningEngines/<id>.
-LOCATION = RESOURCE.split("/locations/")[1].split("/")[0]
+AGENT_BACKEND_URL = os.environ.get("AGENT_BACKEND_URL")
+USE_LOCAL_PLAYGROUND = os.environ.get("LOCAL_PLAYGROUND", "true").lower() == "true"
 
-# A2A endpoint for an Agent Runtime deployment, via the Agent Engine HTTP
-# passthrough. The card lives at the well-known path under this base.
-A2A_BASE = (
-    f"https://{LOCATION}-aiplatform.googleapis.com/reasoningEngines/v1/"
-    f"{RESOURCE}/api/a2a/{AGENT_DIRECTORY}"
-)
+if AGENT_BACKEND_URL:
+    # Connect to custom containerized backend on Cloud Run
+    A2A_BASE = f"{AGENT_BACKEND_URL.rstrip('/')}/api/a2a/{AGENT_DIRECTORY}"
+    USE_LOCAL_PLAYGROUND = True  # Bypass GCP IAM credentials logic
+elif USE_LOCAL_PLAYGROUND:
+    A2A_BASE = f"http://127.0.0.1:8080/api/a2a/{AGENT_DIRECTORY}"
+else:
+    RESOURCE = os.environ.get(
+        "AGENT_ENGINE_RESOURCE_NAME",
+        "projects/746320986672/locations/us-east1/reasoningEngines/1691330358496198656",
+    )
+    LOCATION = RESOURCE.split("/locations/")[1].split("/")[0]
+    A2A_BASE = (
+        f"https://{LOCATION}-aiplatform.googleapis.com/reasoningEngines/v1/"
+        f"{RESOURCE}/api/a2a/{AGENT_DIRECTORY}"
+    )
+
 A2A_CARD_URL = f"{A2A_BASE}/.well-known/agent-card.json"
 
 # The agent tags its A2UI data parts with this mime type.
 _A2UI_MIME = "application/json+a2ui"
 
 # One set of ADC credentials, refreshed per request (access tokens expire ~1h).
-_creds, _ = google.auth.default(
-    scopes=["https://www.googleapis.com/auth/cloud-platform"]
-)
+_creds = None
+if not USE_LOCAL_PLAYGROUND:
+    _creds, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
 
 
 def _auth_headers() -> dict[str, str]:
+    if USE_LOCAL_PLAYGROUND:
+        return {
+            "Content-Type": "application/json",
+        }
     _creds.refresh(google.auth.transport.requests.Request())
     return {
         "Authorization": f"Bearer {_creds.token}",

@@ -3,8 +3,10 @@
 import datetime
 from google.cloud import firestore
 
-# Hardcoded project ID as string for Firestore client
-PROJECT_ID = "qwiklabs-gcp-04-72024f788a4d"
+import os
+
+# Read project ID dynamically from the environment
+PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "qwiklabs-gcp-04-72024f788a4d")
 
 
 def seed_events():
