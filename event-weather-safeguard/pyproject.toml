@@ -3,7 +3,7 @@ name = "event-weather-safeguard"
 version = "0.1.0"
 description = "SafeStageWX - AI-Powered Outdoor Event Weather Safeguard & Climatological Risk Engine"
 authors = [
-    {name = "Felix Scott", email = "mfscott28@gmail.com"},
+    {name = "Mariana Scott", email = "mfscott28@gmail.com"},
 ]
 license = {text = "Proprietary - Source Available (All Rights Reserved)"}
 
