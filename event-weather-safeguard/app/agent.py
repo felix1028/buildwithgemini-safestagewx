@@ -106,7 +106,11 @@ domain_instruction = (
     "Focus your advice on seasonal hazard envelopes, site budgeting, temporary flooring/mud sills, and ANSI E1.21 ballast standards.\n"
     "   - Event in Near-Term Window (1 to 7 Days Away): Query `get_nws_point_forecast`, `get_nws_forecast_discussion`, and `get_nws_hazardous_weather_outlook`. "
     "Focus on deterministic multi-day trends and preparatory egress thresholds.\n"
-    "   - Event is Today: Focus on real-time live threat monitoring using `get_nws_active_alerts`, `get_spc_mesoscale_discussions`, and tactical egress timing.\n\n"
+    "   - Event is Today: Focus on real-time live threat monitoring using `get_nws_active_alerts`, `get_spc_mesoscale_discussions`, and tactical egress timing.\n"
+    "7. United States & National Weather Service (NWS) Coverage Mandate:\n"
+    "   - SafeStageWX is built exclusively for United States outdoor venues within the 50 U.S. states and U.S. territories (Puerto Rico, U.S. Virgin Islands, Guam, American Samoa, Northern Mariana Islands) covered by the National Weather Service (NWS) and NOAA SPC.\n"
+    "   - All weather forecasts, active alerts, warning polygons, and convective outlooks are sourced directly from NOAA and NWS.\n"
+    "   - If the user asks about or specifies an international or non-U.S. location (e.g. Europe, Asia, Canada, Mexico, etc.), politely inform them that SafeStageWX is strictly dedicated to U.S. venues covered by the National Weather Service, and prompt them for a venue location within the United States or U.S. territories.\n\n"
     "CROSS-SESSION MEMORY & PERSISTENCE MANDATE:\n"
     "1. Location & Geocoded Coordinates: Whenever the user shares a location or address, use `calculate_coordinates_and_address` "
     "to compute exact latitude and longitude. Retain both the address string and computed (latitude, longitude) coordinates "
@@ -169,27 +173,35 @@ def get_current_time(query: str) -> str:
 
 
 def calculate_coordinates_and_address(location_or_address: str) -> str:
-    """Calculates latitude and longitude coordinates for a location or address string.
+    """Calculates latitude and longitude coordinates for a United States location or address string.
+    Validates that the location is within the United States or U.S. territories covered by the National Weather Service (NWS).
 
     Args:
-        location_or_address: Address or location name (e.g. '100 S Biscayne Blvd, Miami, FL' or 'Zilker Park, Austin, TX').
+        location_or_address: U.S. address or location name (e.g. '100 S Biscayne Blvd, Miami, FL' or 'Zilker Park, Austin, TX').
 
     Returns:
-        Formatted summary containing calculated latitude, longitude, and formatted address.
+        Formatted summary containing calculated latitude, longitude, and formatted address, or US coverage guidance if outside USA.
     """
     url = f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(location_or_address)}&count=1"
     try:
         res = requests.get(url, timeout=5)
         if res.status_code == 200 and res.json().get("results"):
             item = res.json()["results"][0]
+            country = item.get("country", "")
+            country_code = item.get("country_code", "").upper()
+            if country_code not in ["US", "PR", "VI", "GU", "AS", "MP"] and country not in ["United States", "Puerto Rico", "Virgin Islands", "Guam", "American Samoa"]:
+                return (
+                    f"⚠️ SafeStageWX is built exclusively for United States outdoor venues covered by the National Weather Service (NWS). "
+                    f"The location '{location_or_address}' was resolved to {country} (outside the United States). "
+                    f"Please specify a venue location within the 50 U.S. states or U.S. territories."
+                )
             lat = item["latitude"]
             lon = item["longitude"]
             name = item.get("name", "")
             admin = item.get("admin1", "")
-            country = item.get("country", "")
             formatted_addr = f"{name}, {admin}, {country}".strip(", ")
             return f"Calculated Coordinates for '{location_or_address}': Latitude = {lat:.5f}, Longitude = {lon:.5f} (Formatted Address: {formatted_addr})."
-        return f"Could not calculate exact coordinates for: '{location_or_address}'. Please verify city/state or address string."
+        return f"Could not calculate exact coordinates for: '{location_or_address}'. Please verify U.S. city/state or address string."
     except Exception as e:
         return f"Geocoding error calculating coordinates: {e}"
 
