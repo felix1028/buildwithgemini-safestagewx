@@ -129,3 +129,16 @@ SafeStageWX leverages the full Google Cloud & Vertex AI Agent Development Kit (A
 - 🌐 **Live Web Application**: [https://safestagewx-frontend-1066893422734.us-central1.run.app](https://safestagewx-frontend-1066893422734.us-central1.run.app)
 - 🐙 **GitHub Repository**: [https://github.com/felix1028/buildwithgemini-safestagewx](https://github.com/felix1028/buildwithgemini-safestagewx)
 - 🎥 **Demo Recording Video**: [demo_video.webm](demo_video.webm) | [demo.gif](demo.gif)
+
+---
+
+## 📄 License & Intellectual Property
+
+Copyright © 2026 Felix Scott (felix1028). All Rights Reserved.
+
+This project is licensed under a **Proprietary / Source-Available License**. 
+- **Permitted**: Public viewing, cloning, and local execution for personal evaluation, peer review, academic study, and hackathon judging (including the Google Cloud / Build with Gemini Challenge).
+- **Prohibited**: Unauthorized commercial exploitation, redistribution, hosting as a commercial Software-as-a-Service (SaaS), sublicensing, or creating closed-source derivative products without explicit written authorization from the copyright holder.
+- **Safety Advisory**: Provided "AS IS" without warranty. SafeStageWX is an advisory decision-support system and does not replace official National Weather Service (NWS) directives or local emergency management commands.
+
+See the full [LICENSE](LICENSE) file for complete terms and liability disclaimers.

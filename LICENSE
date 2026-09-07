@@ -1,0 +1,31 @@
+PROPRIETARY SOURCE-AVAILABLE LICENSE
+
+Copyright (c) 2026 Felix Scott (felix1028). All Rights Reserved.
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. DEFINITIONS
+"Software" refers to the SafeStageWX (Event Weather Safeguard) software, including source code, documentation, algorithms, prompts, architecture designs, and associated files contained within this repository.
+"Copyright Holder" refers to Felix Scott (felix1028).
+
+2. PERMITTED USES
+Permission is hereby granted, free of charge, to any person obtaining a copy of this Software from the official repository, to:
+(a) View, download, clone, and execute the Software locally for personal evaluation, peer review, academic study, and portfolio review.
+(b) Evaluate and judge the Software in connection with competitions, hackathons (including the Google Cloud / Build with Gemini Challenge), and technical showcases.
+
+3. PROHIBITED USES
+Except as expressly authorized under Section 2 or with prior written permission from the Copyright Holder:
+(a) You may NOT modify, adapt, translate, reverse engineer, decompile, disassemble, or create derivative works based on this Software.
+(b) You may NOT redistribute, sell, rent, lease, sublicense, distribute, or transfer copies of this Software or any portions thereof to any third party.
+(c) You may NOT use this Software or any of its proprietary algorithms, climatological engines, agent architectures, prompt instructions, or decision matrices to build, deploy, or operate a commercial Software-as-a-Service (SaaS), hosted service, or competing product.
+
+4. INTELLECTUAL PROPERTY & PATENT RESERVATION
+All title, ownership rights, patent rights (including any pending or future patent applications related to weather nowcasting, machine learning, structural safety thresholds, or event decision matrices), trademarks, and intellectual property rights in and to the Software remain exclusively with the Copyright Holder. No implied license or patent grant is conferred under this agreement.
+
+5. DISCLAIMER OF WARRANTY & WEATHER SAFETY ADVISORY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, TITLE, AND NON-INFRINGEMENT.
+
+SAFESTAGEWX IS AN ADVISORY DECISION-SUPPORT TOOL AND DOES NOT REPLACE OFFICIAL METEOROLOGICAL SERVICES, LOCAL EMERGENCY MANAGEMENT DIRECTIVES, LICENSED STRUCTURAL ENGINEERS, OR OFFICIAL NOAA NATIONAL WEATHER SERVICE (NWS) DISPATCHES. LIFE-SAFETY, EVACUATION, AND STRUCTURAL BALLAST ACTIONS MUST ALWAYS BE VALIDATED AGAINST OFFICIAL PUBLIC SAFETY AUTHORITIES.
+
+6. LIMITATION OF LIABILITY
+IN NO EVENT SHALL THE COPYRIGHT HOLDER, AUTHORS, OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE, RELIANCE UPON, DELAY, OR INABILITY TO USE THE SOFTWARE, INCLUDING BUT NOT LIMITED TO ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE, OR CONSEQUENTIAL DAMAGES (INCLUDING PROPERTY DAMAGE, EVACUATION EXPENSES, CROWD INJURY, OR LOSS OF LIFE), EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
