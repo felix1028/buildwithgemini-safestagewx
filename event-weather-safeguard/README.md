@@ -126,7 +126,7 @@ SafeStageWX leverages the full Google Cloud & Vertex AI Agent Development Kit (A
 
 ## 🚀 Live Links & Resources
 
-- 🌐 **Live Web Application**: [https://safestagewx-frontend-1066893422734.us-central1.run.app](https://safestagewx-frontend-1066893422734.us-central1.run.app)
+- 🌐 **Live Web Application**: [https://safestagewx-1066893422734.us-central1.run.app](https://safestagewx-1066893422734.us-central1.run.app)
 - 🐙 **GitHub Repository**: [https://github.com/felix1028/buildwithgemini-safestagewx](https://github.com/felix1028/buildwithgemini-safestagewx)
 - 🎥 **Demo Recording Video**: [demo_video.webm](demo_video.webm) | [demo.gif](demo.gif)
 
