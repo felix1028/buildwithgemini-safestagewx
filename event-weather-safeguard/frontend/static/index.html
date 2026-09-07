@@ -476,7 +476,7 @@
   <div class="brand" style="display: flex; align-items: center; gap: 0.4rem;">
     <span class="material-symbols-outlined icon">bolt</span>
     <span>SafeStageWX</span>
-    <span style="font-size: 0.65rem; color: #7dd3fc; border: 1px solid rgba(125,211,252,0.4); padding: 2px 7px; border-radius: 6px; font-weight: 700; letter-spacing: 0.04em;">🇺🇸 USA • NWS COVERAGE</span>
+    <span style="font-size: 1.05rem; line-height: 1;" title="United States Weather Service Coverage">🇺🇸</span>
   </div>
   <div style="display: flex; align-items: center; gap: 0.5rem;">
     <button onclick="exportSafetyReport()" style="background: #0284c7; border: 1px solid #0369a1; color: white; padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; box-shadow: 0 2px 6px rgba(2,132,199,0.3);">
@@ -1082,11 +1082,8 @@
       </div>
 
       <div>
-        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.2rem;">
-          <span>VENUE ADDRESS / LOCATION</span>
-          <span style="font-size: 0.70rem; color: #0284c7; font-weight: 700; background: rgba(2,132,199,0.1); padding: 1px 6px; border-radius: 4px;">🇺🇸 USA ONLY (NWS COVERED)</span>
-        </label>
-        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. 123 Main St, Austin, TX (US venues only)" required>
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">VENUE ADDRESS / LOCATION</label>
+        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. 123 Main St, Austin, TX" required>
         <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.25rem;">
           Supports all 50 U.S. states & territories (PR, VI, GU, AS, MP) covered by the NOAA National Weather Service.
         </div>
