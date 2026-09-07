@@ -2069,10 +2069,12 @@ Please import and acknowledge these parameters for future decision making and ev
       if (bannerTime) bannerTime.innerText = isToday ? "TODAY'S EVENT • LIVE THREAT MONITOR" : `Live Forecast (${daysUntil} Days Out)`;
       if (bannerSub) bannerSub.innerText = `${address} • ${date} • ${isToday ? "Today" : daysUntil + " Days Out"} • ${guests} Guests`;
 
-      // Query Current Threat (Synthesizes live alerts, point forecast & AFD), Forecast Discussion & HWO
-      await loadCurrentThreat(currentLat, currentLon, date, isToday);
-      await loadNWSForecastDiscussion(currentLat, currentLon);
-      await loadNWSHazardousWeatherOutlook(currentLat, currentLon);
+      // Query Current Threat, Forecast Discussion & HWO in parallel for instant sub-second response
+      await Promise.allSettled([
+        loadCurrentThreat(currentLat, currentLon, date, isToday),
+        loadNWSForecastDiscussion(currentLat, currentLon),
+        loadNWSHazardousWeatherOutlook(currentLat, currentLon)
+      ]);
     }
   }
 

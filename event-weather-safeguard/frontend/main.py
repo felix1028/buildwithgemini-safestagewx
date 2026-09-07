@@ -52,10 +52,10 @@ USE_LOCAL_PLAYGROUND = os.environ.get("LOCAL_PLAYGROUND", "true").lower() == "tr
 
 if AGENT_BACKEND_URL:
     # Connect to custom containerized backend on Cloud Run
-    A2A_BASE = f"{AGENT_BACKEND_URL.rstrip('/')}/api/a2a/{AGENT_DIRECTORY}"
+    A2A_BASE = f"{AGENT_BACKEND_URL.rstrip('/')}/a2a/{AGENT_DIRECTORY}"
     USE_LOCAL_PLAYGROUND = True  # Bypass GCP IAM credentials logic
 elif USE_LOCAL_PLAYGROUND:
-    A2A_BASE = f"http://127.0.0.1:8080/api/a2a/{AGENT_DIRECTORY}"
+    A2A_BASE = f"http://127.0.0.1:8080/a2a/{AGENT_DIRECTORY}"
 else:
     RESOURCE = os.environ.get(
         "AGENT_ENGINE_RESOURCE_NAME",
@@ -127,11 +127,15 @@ _card: AgentCard | None = None
 async def _get_card(client: httpx.AsyncClient) -> AgentCard:
     global _card
     if _card is None:
-        resp = await client.get(A2A_CARD_URL)
-        resp.raise_for_status()
+        try:
+            resp = await client.get(A2A_CARD_URL, timeout=8.0)
+            resp.raise_for_status()
+        except Exception:
+            # Fallback to alternate path if A2A_BASE had or lacked /api
+            alt_url = A2A_CARD_URL.replace("/a2a/", "/api/a2a/") if "/a2a/" in A2A_CARD_URL else A2A_CARD_URL.replace("/api/a2a/", "/a2a/")
+            resp = await client.get(alt_url, timeout=8.0)
+            resp.raise_for_status()
         card = AgentCard(**resp.json())
-        # Agent Runtime does not serve a public card URL, so point the client at
-        # the passthrough base for message sends.
         card.url = A2A_BASE
         _card = card
     return _card
@@ -444,7 +448,10 @@ async def get_climatology(
 ):
     """Fetches comprehensive long-term climatology, annual temperature curve, ENSO teleconnections, and operational safeguards."""
     try:
-        from app.climatology import get_climatology_full_report
+        try:
+            from climatology import get_climatology_full_report
+        except ImportError:
+            from app.climatology import get_climatology_full_report
         report = await get_climatology_full_report(
             lat=lat,
             lon=lon,
