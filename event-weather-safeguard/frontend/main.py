@@ -479,6 +479,7 @@ async def get_current_threat(
         # 2. Fetch point forecast
         forecast_period = None
         cwa = "CHS"
+        is_outside_us = False
         try:
             pts_res = await client.get(f"https://api.weather.gov/points/{lat:.4f},{lon:.4f}", headers=headers)
             if pts_res.status_code == 200:
@@ -491,8 +492,26 @@ async def get_current_threat(
                         periods = fc_res.json().get("properties", {}).get("periods", [])
                         if periods:
                             forecast_period = periods[0]
+            elif pts_res.status_code == 404:
+                is_outside_us = True
         except Exception:
             pass
+
+        if is_outside_us:
+            return JSONResponse({
+                "status": "outside_domain",
+                "is_today": True,
+                "severity": "MONITORING",
+                "icon": "location_off",
+                "headline": "Venue Outside National Weather Service (NWS) Coverage",
+                "description": "The selected venue coordinates fall outside the United States National Weather Service forecast domain. SafeStageWX monitors outdoor events within the 50 U.S. states and U.S. territories.",
+                "action": "Please configure a venue located within the United States or U.S. territories.",
+                "active_alerts": [],
+                "short_forecast": "Outside NWS Domain",
+                "temperature": "--",
+                "wind": "--",
+                "cwa": "N/A",
+            })
 
         # 3. Synthesize threats
         active_events = [f.get("properties", {}).get("event", "") for f in features if f.get("properties", {}).get("event")]

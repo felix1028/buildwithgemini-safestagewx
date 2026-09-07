@@ -1,6 +1,8 @@
 # 🛡️ SafeStageWX: Event Weather & Climate Safeguard
 
 > **An enterprise-grade, mobile-responsive event safety platform and AI assistant that protects outdoor events (concerts, festivals, athletic events) by combining live NWS warning polygons, SPC mesoscale discussions, interactive weather radar, automated evacuation decision math, and conversational AI safety grounding.**
+>
+> 🇺🇸 **United States & National Weather Service (NWS) Scope**: SafeStageWX is built exclusively for outdoor venues located within the 50 U.S. states and U.S. territories (Puerto Rico, U.S. Virgin Islands, Guam, American Samoa, Northern Mariana Islands). All meteorological intelligence—including live Doppler radar sweeps, active warning polygons, convective mesoscale discussions, and Area Forecast Discussions (AFDs)—is sourced directly from NOAA and the National Weather Service.
 
 ---
 
@@ -19,6 +21,7 @@
 Outdoor venue operators, event directors, and emergency managers face severe weather hazards—including convective lightning, damaging wind gusts, extreme heat, and severe thunderstorms. **SafeStageWX** eliminates guesswork by fusing real-time National Weather Service (NWS) & Storm Prediction Center (SPC) data with deterministic evacuation math and a conversational Gemini 2.5 AI Safety Assistant.
 
 ### Key Capabilities:
+- 🇺🇸 **U.S. & NWS Jurisdiction Enforcement**: Geocoding validation restricts venue setup exclusively to addresses within the 50 U.S. states and U.S. territories supported by NOAA National Weather Service Weather Forecast Offices (WFOs).
 - 🌩️ **Live Threat Monitor & Warning Polygons**: Real-time NWS alerts, interactive RainViewer 480px weather radar overlay, and dynamic Call-to-Action safety banners tailored to active warning types (e.g. hydration for heat, sturdy shelter for lightning/wind).
 - 🗓️ **Long-Term Climatological Risk Engine (> 7 Days Out)**: 15-year empirical climate baselines, P10/P50/P90 temperature envelopes, annual climate ribbon positioning, and NOAA CPC ENSO (El Niño / La Niña) teleconnections for far-advance event planning.
 - ⚡ **Dynamic Date Horizon Adaptation**: Automatically switches UI modes, navigation tabs, and AI assistant behavior between *Long-Term Climatology* (> 7 days), *7-Day Forecast Window* (1–7 days), and *Tactical Event Day* (Today / 0 days).

@@ -473,9 +473,10 @@
 <body>
 
 <header>
-  <div class="brand">
+  <div class="brand" style="display: flex; align-items: center; gap: 0.4rem;">
     <span class="material-symbols-outlined icon">bolt</span>
     <span>SafeStageWX</span>
+    <span style="font-size: 0.65rem; color: #7dd3fc; border: 1px solid rgba(125,211,252,0.4); padding: 2px 7px; border-radius: 6px; font-weight: 700; letter-spacing: 0.04em;">🇺🇸 USA • NWS COVERAGE</span>
   </div>
   <div style="display: flex; align-items: center; gap: 0.5rem;">
     <button onclick="exportSafetyReport()" style="background: #0284c7; border: 1px solid #0369a1; color: white; padding: 5px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; box-shadow: 0 2px 6px rgba(2,132,199,0.3);">
@@ -522,13 +523,13 @@
         <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">SafeStageWX Ready</span>
       </div>
       <div class="status-title" id="banner-event-title">No Event Configured</div>
-      <div class="status-sub" id="banner-event-sub">Click "Configure Event" to enter venue address, event date, and expected attendees.</div>
+      <div class="status-sub" id="banner-event-sub">Click "Configure Event" to enter a U.S. venue address (covered by the National Weather Service), event date, and expected attendees.</div>
       <div id="active-alerts-list" style="display: none; margin-top: 0.5rem; font-size: 0.82rem; color: #fee2e2; background: rgba(0,0,0,0.35); padding: 0.4rem 0.6rem; border-radius: 8px;">
       </div>
 
       <!-- Actionable Call To Action Recommendation Box -->
       <div id="call-to-action-box" style="margin-top: 0.5rem; font-size: 0.83rem; color: #f1f5f9; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.15); padding: 0.65rem 0.75rem; border-radius: 8px; font-weight: 500; line-height: 1.45;">
-        ℹ️ <strong style="color: #38bdf8;">Configure Event:</strong> Enter your venue address and event date to begin live radar sweeps, NWS warning polygon tracking, and climatological risk modeling.
+        ℹ️ <strong style="color: #38bdf8;">Configure U.S. Venue:</strong> Enter a United States venue address (all 50 U.S. states & territories) to activate live NWS radar sweeps, warning polygon tracking, and climatological risk modeling.
       </div>
     </div>
     
@@ -1071,7 +1072,7 @@
       </button>
     </div>
     <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; margin-top: 0.4rem;">
-      Please enter your event details to generate the event safety profile, powered by weather radar, meteorologist forecasts, and current weather warnings.
+      SafeStageWX is engineered exclusively for <strong>United States outdoor venues</strong> covered by the National Weather Service (NWS) and NOAA Storm Prediction Center (SPC). Please enter your U.S. event details below.
     </div>
 
     <form onsubmit="handleEventSetupSubmit(event)" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.8rem;">
@@ -1081,8 +1082,14 @@
       </div>
 
       <div>
-        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">VENUE ADDRESS / LOCATION</label>
-        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. Street Address, City, State or Venue Name" required>
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.2rem;">
+          <span>VENUE ADDRESS / LOCATION</span>
+          <span style="font-size: 0.70rem; color: #0284c7; font-weight: 700; background: rgba(2,132,199,0.1); padding: 1px 6px; border-radius: 4px;">🇺🇸 USA ONLY (NWS COVERED)</span>
+        </label>
+        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. 123 Main St, Austin, TX (US venues only)" required>
+        <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.25rem;">
+          Supports all 50 U.S. states & territories (PR, VI, GU, AS, MP) covered by the NOAA National Weather Service.
+        </div>
       </div>
 
       <div style="display: flex; gap: 0.6rem;">
@@ -1779,8 +1786,9 @@ Please import and acknowledge these parameters for future decision making and ev
             </span>
           </div>
           <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-primary);">
-            Welcome to <strong>SafeStageWX</strong>. Please configure your event details using the <strong>"Configure Event"</strong> button above to activate location-specific weather monitoring, 15-year climatological distributions, and crowd evacuation protocols.<br><br>
-            You can also ask me general questions about outdoor event weather safety, structural wind limits, or emergency action plans anytime!
+            Welcome to <strong>SafeStageWX</strong> — engineered exclusively for <strong>United States outdoor venues</strong> covered by the National Weather Service (NWS) and NOAA Storm Prediction Center (SPC).<br><br>
+            Please configure your U.S. event details using the <strong>"Configure Event"</strong> button above to activate location-specific weather monitoring, 15-year climatological distributions, and crowd evacuation protocols.<br><br>
+            You can also ask me general questions about U.S. outdoor event weather safety, structural wind limits under ANSI E1.21, or emergency action plans anytime!
           </div>
         `;
       }
@@ -2095,18 +2103,51 @@ Please import and acknowledge these parameters for future decision making and ev
     currentVenueAddress = address;
     const shortLoc = address.split(',')[0] || address;
 
-    // OpenStreetMap Nominatim Geocoding API
+    // OpenStreetMap Nominatim Geocoding API - Restrict to US locations covered by NWS
+    let isUS = false;
     try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=us,pr,vi,gu,as,mp&addressdetails=1&limit=1&q=${encodeURIComponent(address)}`);
       if (geoRes.ok) {
         const geoData = await geoRes.json();
         if (geoData && geoData.length > 0) {
-          currentLat = parseFloat(geoData[0].lat);
-          currentLon = parseFloat(geoData[0].lon);
+          const item = geoData[0];
+          const countryCode = (item.address && item.address.country_code) ? item.address.country_code.toLowerCase() : "";
+          if (["us", "pr", "vi", "gu", "as", "mp"].includes(countryCode)) {
+            isUS = true;
+            currentLat = parseFloat(item.lat);
+            currentLon = parseFloat(item.lon);
+          }
         }
       }
     } catch (err) {
-      console.log('Geocoding offline or network error, using default/fallback coordinates');
+      console.log('Geocoding network error:', err);
+    }
+
+    if (!isUS) {
+      // Fallback check to inspect country if countrycodes restriction filtered a valid US territory or format
+      try {
+        const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(address)}`);
+        if (fallbackRes.ok) {
+          const fbData = await fallbackRes.json();
+          if (fbData && fbData.length > 0) {
+            const countryCode = (fbData[0].address && fbData[0].address.country_code) ? fbData[0].address.country_code.toLowerCase() : "";
+            if (["us", "pr", "vi", "gu", "as", "mp"].includes(countryCode)) {
+              isUS = true;
+              currentLat = parseFloat(fbData[0].lat);
+              currentLon = parseFloat(fbData[0].lon);
+            }
+          }
+        }
+      } catch (err) {
+        console.log('Fallback geocoding error:', err);
+      }
+    }
+
+    if (!isUS) {
+      alert("🇺🇸 United States Venues Only:\n\nSafeStageWX is built exclusively for venues located in the United States and U.S. territories covered by the National Weather Service (NWS) and NOAA SPC.\n\nPlease enter a valid U.S. street address, city, or venue name (e.g. 'Piedmont Park, Atlanta, GA' or '123 Main St, Denver, CO').");
+      btn.innerHTML = `<span class="material-symbols-outlined">bolt</span> Start Weather Safeguard`;
+      btn.disabled = false;
+      return;
     }
 
     // Update Header Badge
