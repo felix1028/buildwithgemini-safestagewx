@@ -9,6 +9,7 @@
 <title>SafeStageWX - Event Weather Safeguard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --accent: #2563eb;
@@ -76,11 +77,11 @@
   .loc-badge {
     background: #1e293b;
     border: 1px solid #334155;
-    color: #94a3b8;
+    color: #e2e8f0;
     padding: 0.25rem 0.6rem;
     border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 0.3rem;
@@ -163,7 +164,8 @@
     color: #ffffff;
     border-radius: 14px;
     padding: 1.1rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .status-header {
@@ -175,7 +177,7 @@
 
   .status-tag {
     background: rgba(16, 185, 129, 0.2);
-    color: #34d399;
+    color: #6ee7b7;
     padding: 0.25rem 0.65rem;
     border-radius: 12px;
     font-size: 0.75rem;
@@ -186,14 +188,16 @@
   }
 
   .status-title {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
     margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
   }
 
   .status-sub {
-    font-size: 0.82rem;
-    color: #94a3b8;
+    font-size: 0.84rem;
+    color: #cbd5e1;
   }
 
   .action-grid {
@@ -490,9 +494,9 @@
 </header>
 
 <nav class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('safeguard-pane', this)">
-    <span class="material-symbols-outlined">radar</span>
-    Threat Monitor
+  <button class="tab-btn active" id="tab-threat-btn" onclick="switchTab('safeguard-pane', this)">
+    <span class="material-symbols-outlined" id="tab-threat-icon">radar</span>
+    <span id="tab-threat-label">Threat Monitor</span>
   </button>
   <button class="tab-btn" onclick="switchTab('chat-pane', this)">
     <span class="material-symbols-outlined">chat</span>
@@ -511,7 +515,7 @@
     <!-- 1. TOP: CALL TO ACTION Status Banner with Dynamic Alert Polygon Status -->
     <div class="status-banner" id="main-status-banner">
       <div class="status-header">
-        <span class="status-tag" id="banner-tag" style="background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444; font-weight: 700;">
+        <span class="status-tag" id="banner-tag" style="background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444; font-weight: 700;">
           <span class="material-symbols-outlined" style="font-size: 1rem;">warning</span>
           ⚠️ WARNING POLYGON ACTIVE
         </span>
@@ -519,22 +523,205 @@
       </div>
       <div class="status-title" id="banner-event-title">Wilmington Island Venue (Savannah, GA)</div>
       <div class="status-sub" id="banner-event-sub">501 Wilmington Island Rd • Aug 13, 2026 ~6:30 PM EDT • 100 Guests</div>
-      <div id="active-alerts-list" style="margin-top: 0.5rem; font-size: 0.82rem; color: #fecaca; background: rgba(0,0,0,0.3); padding: 0.4rem 0.6rem; border-radius: 8px;">
+      <div id="active-alerts-list" style="margin-top: 0.5rem; font-size: 0.82rem; color: #fee2e2; background: rgba(0,0,0,0.35); padding: 0.4rem 0.6rem; border-radius: 8px;">
         🚨 <strong>Active NWS Warnings at Venue (32.001° N, -80.974° W):</strong> Severe Thunderstorm Warning • Extreme Heat Warning
       </div>
 
       <!-- Actionable Call To Action Recommendation Box -->
-      <div id="call-to-action-box" style="margin-top: 0.5rem; font-size: 0.83rem; color: #fef08a; background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; padding: 0.65rem 0.75rem; border-radius: 8px; font-weight: 500; line-height: 1.45;">
-        📢 <strong>RECOMMENDED SAFETY ACTION:</strong><br>
-        💧 <strong>Heat Safety:</strong> Direct guests to stay in cool shaded/indoor areas and provide free hydration/water stations to prevent heat stroke.<br>
-        ⚡ <strong>Severe Weather / Lightning:</strong> Direct guests to permanent indoor sturdy shelter and prepare PA broadcast.
+      <div id="call-to-action-box" style="margin-top: 0.5rem; font-size: 0.83rem; color: #fef9c3; background: rgba(234, 179, 8, 0.18); border: 1px solid #facc15; padding: 0.65rem 0.75rem; border-radius: 8px; font-weight: 500; line-height: 1.45;">
+        <span style="color: #fef08a; font-weight: 700;">📢 RECOMMENDED SAFETY ACTION:</span><br>
+        💧 <strong style="color: #ffffff;">Heat Safety:</strong> Direct guests to stay in cool shaded/indoor areas and provide free hydration/water stations to prevent heat stroke.<br>
+        ⚡ <strong style="color: #ffffff;">Severe Weather / Lightning:</strong> Direct guests to permanent indoor sturdy shelter and prepare PA broadcast.
         <div id="afd-cta-takeaway" style="margin-top: 0.35rem; border-top: 1px dashed rgba(234, 179, 8, 0.4); padding-top: 0.35rem; font-size: 0.80rem; color: #fef08a;">
           📝 <strong>NWS Discussion Highlight:</strong> Loading local meteorologist briefing...
         </div>
       </div>
     </div>
     
-    <!-- 2. MIDDLE: ENLARGED EVENT MAP WITH WEATHER WARNING OVERLAY -->
+    
+    <!-- DYNAMIC THREAT VIEW SELECTOR: Climatology vs. Live Radar -->
+    <div id="view-mode-selector-bar" style="display: flex; gap: 0.5rem; margin-bottom: 0.85rem; background: rgba(0,0,0,0.06); padding: 4px; border-radius: 10px; border: 1px solid var(--border);">
+      <button id="mode-btn-climo" onclick="switchThreatViewMode('climo')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.55rem 0.8rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--accent); color: white;">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem;">calendar_month</span>
+        <span>Long-Term Climatology</span>
+      </button>
+      <button id="mode-btn-live" onclick="switchThreatViewMode('live')" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.55rem 0.8rem; border-radius: 8px; border: none; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--text-secondary);">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem;">radar</span>
+        <span>Live Radar & Warnings</span>
+      </button>
+    </div>
+
+    <!-- LONG-TERM CLIMATOLOGY & SEASONAL HAZARD CONTAINER -->
+    <div id="climatology-container" style="display: flex; flex-direction: column; gap: 0.85rem;">
+      
+      <!-- Climatology Summary Banner -->
+      <div class="tool-card" style="padding: 0.9rem; border-left: 4px solid var(--accent); background: var(--card-bg); box-shadow: 0 4px 12px rgba(37,99,235,0.08);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.3rem;">
+              <span class="material-symbols-outlined" style="font-size: 0.95rem;">calendar_month</span>
+              15-Year Climate Baseline & Seasonal Intelligence
+            </div>
+            <div id="climo-banner-title" style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-top: 0.2rem;">
+              Long-Term Seasonal Risk Profile
+            </div>
+          </div>
+          <span id="climo-days-badge" class="status-tag" style="background: rgba(37,99,235,0.15); color: var(--accent); font-weight: 700; font-size: 0.75rem;">
+            Loading Climate Data...
+          </span>
+        </div>
+        <div id="climo-annual-pos-badge" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.55rem; background: rgba(234, 179, 8, 0.15); color: #b45309; border-radius: 6px; font-size: 0.76rem; font-weight: 700; margin-top: 0.3rem;">
+          <span class="material-symbols-outlined" style="font-size: 0.9rem;">trending_up</span>
+          <span id="climo-annual-pos-text">Analyzing annual temperature envelope...</span>
+        </div>
+      </div>
+
+      <!-- CARD 1: Year-Round Temperature Envelope Ribbon -->
+      <div class="tool-card" style="padding: 0.85rem;">
+        <div class="status-header" style="margin-bottom: 0.4rem;">
+          <div style="font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined" style="color: #f59e0b;">show_chart</span>
+            <span>Annual Climate Envelope (Full Year Cycle)</span>
+          </div>
+          <span style="font-size: 0.7rem; color: var(--text-secondary);">365-Day Climatological Progression</span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
+          Visualizes typical year-round High and Low temperatures across all 12 months with your specific event date spotlighted.
+        </div>
+        <div style="position: relative; height: 230px; width: 100%;">
+          <canvas id="annualClimateCanvas"></canvas>
+        </div>
+        <div id="annual-spotlight-desc" style="margin-top: 0.5rem; font-size: 0.76rem; color: var(--text-primary); background: var(--bg); padding: 0.45rem 0.65rem; border-radius: 6px; border: 1px solid var(--border); font-weight: 500;">
+          Loading annual context...
+        </div>
+      </div>
+
+      <!-- CARD 2: Micro-Seasonal Risk Distributions & Percentiles -->
+      <div class="tool-card" style="padding: 0.85rem;">
+        <div class="status-header" style="margin-bottom: 0.4rem;">
+          <div style="font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined" style="color: #ef4444;">equalizer</span>
+            <span>Micro-Seasonal Temperature Distribution (±14 Days)</span>
+          </div>
+          <span id="sample-days-badge" class="status-tag" style="background: rgba(16,185,129,0.15); color: #059669; font-size: 0.7rem;">
+            15-Yr Empirical Sample
+          </span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
+          Historical frequency distribution for Daytime Highs and Overnight Lows during the target event window, showing 10th percentile, Median, and 90th percentile heat thresholds.
+        </div>
+        <div style="position: relative; height: 230px; width: 100%;">
+          <canvas id="distHighLowCanvas"></canvas>
+        </div>
+
+        <!-- Percentiles Pill Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.65rem;">
+          <div style="background: var(--bg); border: 1px solid var(--border); padding: 0.55rem 0.7rem; border-radius: 8px;">
+            <div style="font-size: 0.72rem; font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 0.25rem;">
+              <span class="material-symbols-outlined" style="font-size: 0.85rem;">wb_sunny</span> DAYTIME HIGHS
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">Median: <strong id="p50-high" style="color: var(--text-primary);">--</strong></span>
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">P10–P90: <strong id="p10-p90-high" style="color: #ef4444;">--</strong></span>
+            </div>
+            <div id="heat-threat-sub" style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 0.2rem;">Record Max: --</div>
+          </div>
+
+          <div style="background: var(--bg); border: 1px solid var(--border); padding: 0.55rem 0.7rem; border-radius: 8px;">
+            <div style="font-size: 0.72rem; font-weight: 700; color: #3b82f6; display: flex; align-items: center; gap: 0.25rem;">
+              <span class="material-symbols-outlined" style="font-size: 0.85rem;">bedtime</span> OVERNIGHT LOWS
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.25rem;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">Median: <strong id="p50-low" style="color: var(--text-primary);">--</strong></span>
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">P10–P90: <strong id="p10-p90-low" style="color: #3b82f6;">--</strong></span>
+            </div>
+            <div id="freeze-threat-sub" style="font-size: 0.68rem; color: var(--text-secondary); margin-top: 0.2rem;">Record Min: --</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: NOAA CPC ENSO (El Niño / La Niña) Climate Driver -->
+      <div class="tool-card" style="padding: 0.85rem; border-color: #06b6d4; background: linear-gradient(to bottom, var(--card-bg), rgba(6,182,212,0.03));">
+        <div class="status-header" style="margin-bottom: 0.4rem;">
+          <div style="font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined" style="color: #0891b2;">water</span>
+            <span>NOAA CPC ENSO Teleconnection & Climate Driver</span>
+          </div>
+          <span id="enso-phase-badge" class="status-tag" style="background: rgba(6,182,212,0.15); color: #0891b2; font-size: 0.72rem; font-weight: 700;">
+            Checking ENSO Phase...
+          </span>
+        </div>
+        <div id="enso-headline" style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem;">
+          Loading official NOAA Climate Prediction Center status...
+        </div>
+        <div id="enso-teleconnection-body" style="font-size: 0.76rem; color: var(--text-secondary); line-height: 1.45;">
+          Evaluating seasonal teleconnection impacts for your venue region...
+        </div>
+        <div id="enso-tropical-box" style="display: none; margin-top: 0.45rem; padding: 0.45rem 0.65rem; background: rgba(239,68,68,0.08); border-left: 3px solid #ef4444; border-radius: 4px; font-size: 0.75rem; color: #991b1b;">
+          <strong>🌀 Tropical Activity Alert:</strong> <span id="enso-tropical-text"></span>
+        </div>
+      </div>
+
+      <!-- CARD 4: Precipitation & Structural Wind Thresholds -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
+        <!-- Rain Probabilities -->
+        <div class="tool-card" style="padding: 0.8rem; margin-bottom: 0;">
+          <div style="font-size: 0.76rem; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.4rem;">
+            <span class="material-symbols-outlined" style="font-size: 0.95rem;">rainy</span>
+            RAIN PROBABILITY
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 0.3rem;">
+            <span id="climo-rain-odds" style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">--%</span>
+            <span style="font-size: 0.7rem; color: var(--text-secondary);">wet day odds (≥0.01")</span>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; line-height: 1.4;">
+            • Heavy Downpours (>0.5"): <strong id="climo-heavy-rain" style="color: var(--text-primary);">--%</strong><br>
+            • 90th Pct Rain Volume: <strong id="climo-p90-rain" style="color: var(--text-primary);">-- in</strong>
+          </div>
+        </div>
+
+        <!-- Structural Wind Thresholds -->
+        <div class="tool-card" style="padding: 0.8rem; margin-bottom: 0;">
+          <div style="font-size: 0.76rem; font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.4rem;">
+            <span class="material-symbols-outlined" style="font-size: 0.95rem;">air</span>
+            WIND GUSTS (ANSI E1.21)
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 0.3rem;">
+            <span id="climo-p90-gust" style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">--</span>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">mph (90th Pct Gust)</span>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.3rem; line-height: 1.4;">
+            • Canopy Limit (>25 mph): <strong id="climo-pct-25" style="color: var(--text-primary);">--%</strong><br>
+            • Stage Limit (>35 mph): <strong id="climo-pct-35" style="color: #ef4444;">--%</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 5: Site Preparedness & Operational Mitigations -->
+      <div class="tool-card" style="padding: 0.85rem;">
+        <div class="status-header" style="margin-bottom: 0.4rem;">
+          <div style="font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined" style="color: #10b981;">health_and_safety</span>
+            <span>Site Preparedness & Structural Safeguards</span>
+          </div>
+          <span style="font-size: 0.7rem; color: var(--text-secondary);">Engineering Safeguards</span>
+        </div>
+        <div id="climo-safeguards-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.4rem;">
+          <!-- Dynamically populated safeguards -->
+        </div>
+      </div>
+
+      <!-- CARD 6: 1-Tap Action: Ingest into AI Assistant -->
+      <button id="import-climo-agent-btn" class="tool-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, var(--accent), #1d4ed8); color: white; padding: 0.75rem; border-radius: 8px; font-weight: 700; font-size: 0.84rem; box-shadow: 0 4px 14px rgba(37,99,235,0.25); cursor: pointer; border: none;">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem;">smart_toy</span>
+        <span>Plan with SafeStageWX Assistant for These Conditions</span>
+      </button>
+
+    </div>
+
+    <!-- LIVE THREAT CONTAINER -->
+    <div id="live-threat-container" style="display: flex; flex-direction: column; gap: 0.85rem;">
+      <!-- 2. MIDDLE: ENLARGED EVENT MAP WITH WEATHER WARNING OVERLAY -->
     <div class="tool-card" style="padding: 0.85rem; border-color: var(--accent); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);">
       <div class="status-header" style="margin-bottom: 0.5rem;">
         <div style="font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
@@ -655,6 +842,7 @@
         </div>
       </div>
     </div>
+    </div><!-- END live-threat-container -->
 
   </div>
 
@@ -663,33 +851,38 @@
     <div class="chat-history" id="chat-history">
       <div class="chat-msg agent" id="initial-agent-msg">
         <strong>SafeStageWX Assistant</strong><br>
-        Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>501 Wilmington Island Road, Savannah, GA</strong> (100 guests, Aug 13, 2026 at ~6:30 PM EDT, 20-Mile Radius Buffer Active).<br><br>
-        How can I help protect your venue and attendees today?
+        Loading event weather safety parameters...
       </div>
     </div>
 
     <!-- Quick Safeguard Prompts for Agent -->
     <div class="tool-card" style="margin-top: 0.75rem; border-color: #8b5cf6;">
-      <div class="tool-title" style="font-size: 0.88rem;">
-        <span class="material-symbols-outlined" style="color: #8b5cf6;">psychology</span>
-        Quick Safeguard Agent Queries
+      <div class="tool-title" style="font-size: 0.88rem;" id="quick-prompts-title">
+        <span class="material-symbols-outlined" style="color: #8b5cf6;" id="quick-prompts-icon">psychology</span>
+        <span id="quick-prompts-header-text">Quick Safeguard Agent Queries</span>
       </div>
-      <button class="btn-outline" id="quick-prompt-btn-1" onclick="sendQuickPrompt('Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of 501 Wilmington Island Road Savannah GA coordinates 32.0008, -80.9735 and advise on safety actions.')">
-        <span>🔍 20-Mile Radius Threat Check (32.001, -80.974)</span>
-        <span class="material-symbols-outlined">send</span>
-      </button>
-      <button class="btn-outline" id="quick-prompt-btn-2" onclick="sendQuickPrompt('Generate an Emergency Action Plan for an outdoor event with 100 guests at 501 Wilmington Island Road, Savannah GA starting in about an hour today Aug 13, 2026.')">
-        <span>📋 Wilmington Island Emergency Action Plan</span>
-        <span class="material-symbols-outlined">send</span>
-      </button>
-      <button class="btn-outline" id="quick-prompt-btn-3" onclick="sendQuickPrompt('Fetch the latest NWS Area Forecast Discussion (AFD) for Savannah GA / Wilmington Island coordinates 32.0008, -80.9735 and translate the meteorologist discussion into plain English event safety recommendations.')">
-        <span>💬 Fetch NWS Area Forecast Discussion (AFD)</span>
-        <span class="material-symbols-outlined">send</span>
-      </button>
+      <div id="quick-prompts-list" style="display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.45rem;">
+        <button class="btn-outline" id="quick-prompt-btn-1">
+          <span>🔍 Loading Queries...</span>
+          <span class="material-symbols-outlined">send</span>
+        </button>
+        <button class="btn-outline" id="quick-prompt-btn-2">
+          <span>📋 Loading Queries...</span>
+          <span class="material-symbols-outlined">send</span>
+        </button>
+        <button class="btn-outline" id="quick-prompt-btn-3">
+          <span>💬 Loading Queries...</span>
+          <span class="material-symbols-outlined">send</span>
+        </button>
+        <button class="btn-outline" id="quick-prompt-btn-4" style="display: flex;">
+          <span>📊 Loading Queries...</span>
+          <span class="material-symbols-outlined">send</span>
+        </button>
+      </div>
     </div>
 
     <form class="chat-input-bar" onsubmit="handleChatSubmit(event)" style="margin-top: 0.75rem;">
-      <input type="text" id="chat-input" placeholder="Ask about weather threats, SPC discussions, or safety rules..." required>
+      <input type="text" id="chat-input" placeholder="Ask about weather threats or safety rules..." required>
       <button type="submit">
         <span class="material-symbols-outlined" style="font-size: 1.2rem;">send</span>
       </button>
@@ -901,7 +1094,7 @@
       <div style="display: flex; gap: 0.6rem;">
         <div style="flex: 1;">
           <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EVENT DATE</label>
-          <input type="date" id="setup-date" class="tool-input" style="width: 100%; box-sizing: border-box;" value="2026-08-13" required>
+          <input type="date" id="setup-date" class="tool-input" style="width: 100%; box-sizing: border-box;" required>
         </div>
         <div style="flex: 1;">
           <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">START TIME</label>
@@ -1220,6 +1413,7 @@ Please import and acknowledge these parameters for future decision making and ev
 
         if (takeaways.length > 0) {
           ctaEl.style.display = 'block';
+          ctaEl.style.color = '#fef9c3';
           ctaEl.innerHTML = takeaways.join('<br>');
         } else {
           ctaEl.style.display = 'none';
@@ -1484,6 +1678,14 @@ Please import and acknowledge these parameters for future decision making and ev
 
   // Onboarding Event Setup Modal Functions
   function openEventSetupModal() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('setup-date');
+    if (dateInput) {
+      dateInput.min = todayStr;
+      if (!dateInput.value || dateInput.value < todayStr) {
+        dateInput.value = todayStr;
+      }
+    }
     document.getElementById('event-setup-modal').style.display = 'flex';
   }
 
@@ -1494,6 +1696,318 @@ Please import and acknowledge these parameters for future decision making and ev
   let currentLat = 32.0008;
   let currentLon = -80.9735;
   let currentVenueAddress = "501 Wilmington Island Road, Savannah, GA";
+
+  
+  // ==================== SEASONAL HAZARD SYNTHESIZER ====================
+  function generateSeasonalThreatSummary(monthName, dateStr, report) {
+    if (report && report.metrics) {
+      const m = report.metrics;
+      const hazards = report.hazards || [];
+      const enso = report.enso || {};
+
+      const heatHaz = hazards.find(h => h.category === 'HEAT');
+      const rainHaz = hazards.find(h => h.category === 'FLOORING');
+      const windHaz = hazards.find(h => h.category === 'WIND');
+      const coldHaz = hazards.find(h => h.category === 'COLD');
+
+      const threatParts = [];
+
+      // 1. Extreme or Elevated Heat
+      if (heatHaz && (heatHaz.level === 'EXTREME' || heatHaz.level === 'HIGH' || m.temp_high.p90 >= 92)) {
+        threatParts.push(`Severe Heat Stress & Heat Stroke (90th percentile high: ${m.temp_high.p90}°F, ${m.temp_high.pct_over_90}% of days >90°F)`);
+      } else if (heatHaz && m.temp_high.median >= 84) {
+        threatParts.push(`Sustained Summer Heat (${report.annual_position_desc || 'peak annual warmth'}, median high: ${m.temp_high.median}°F)`);
+      }
+
+      // 2. High Precipitation / Turf Mud Saturation
+      if (m.precip.rain_day_prob_pct >= 40 || (rainHaz && rainHaz.level === 'HIGH')) {
+        threatParts.push(`Convective Downpours & Ground Saturation (${m.precip.rain_day_prob_pct}% rain odds, risking turf liquefaction and stage footing subsidence)`);
+      } else if (m.precip.heavy_rain_prob_pct >= 10) {
+        threatParts.push(`Heavy Downpours (${m.precip.heavy_rain_prob_pct}% probability of >0.5" rainfall)`);
+      }
+
+      // 3. Structural Wind Gusts
+      if (windHaz && (windHaz.level === 'HIGH' || m.wind.p90_gust_mph >= 30 || m.wind.pct_days_over_25mph >= 20)) {
+        threatParts.push(`High Structural Wind Gusts (90th percentile gust: ${m.wind.p90_gust_mph} mph, challenging ANSI E1.21 temporary canopy stability)`);
+      }
+
+      // 4. Sub-Freezing Temperatures / Hypothermia
+      if (coldHaz && (coldHaz.level === 'HIGH' || m.temp_low.p10 <= 32 || m.temp_low.pct_freezing >= 15)) {
+        threatParts.push(`Sub-Freezing Temperatures & Hypothermia (10th percentile low: ${m.temp_low.p10}°F, ${m.temp_low.pct_freezing}% of nights drop below 32°F)`);
+      }
+
+      // 5. Tropical cyclone activity if active
+      if (enso.tropical_impact && enso.tropical_impact.includes('Heightened')) {
+        threatParts.push(`Heightened Atlantic Tropical Cyclone / Hurricane Inundation`);
+      }
+
+      if (threatParts.length > 0) {
+        return threatParts.join(" • ");
+      }
+    }
+
+    // Baseline fallback when report is still loading
+    const monthNum = (new Date(dateStr + "T12:00:00")).getMonth() + 1;
+    if ([6, 7, 8].includes(monthNum)) {
+      return "Peak Summer Heat Stress & Convective Thunderstorms (high heat index and sudden heavy downpours that can rapidly saturate turf and stage footings).";
+    } else if ([12, 1, 2].includes(monthNum)) {
+      return "Sub-Freezing Overnight Temperatures & Winter Winds (hypothermia risks for attendees and structural ice/wind loading on temporary shelters).";
+    } else if ([3, 4, 5].includes(monthNum)) {
+      return "Severe Convective Squall Lines & Spring Wind Gusts (fast-moving thunderstorm fronts with sudden gusts threatening canopy ballasts).";
+    } else {
+      return "Seasonal Frontal Wind Shifts & Tropical Rain Bands (variable precipitation and sustained gusts during early fall transitions).";
+    }
+  }
+
+  function updateAIAssistantForDateHorizon(daysUntil, date, title, address, guests, monthName) {
+    const agentMsg = document.getElementById('initial-agent-msg');
+    const promptsIcon = document.getElementById('quick-prompts-icon');
+    const promptsHeader = document.getElementById('quick-prompts-header-text');
+    const qBtn1 = document.getElementById('quick-prompt-btn-1');
+    const qBtn2 = document.getElementById('quick-prompt-btn-2');
+    const qBtn3 = document.getElementById('quick-prompt-btn-3');
+    const qBtn4 = document.getElementById('quick-prompt-btn-4');
+    const chatInput = document.getElementById('chat-input');
+    const shortLoc = (address || "").split(',')[0] || address || "Venue";
+
+    if (daysUntil > 7) {
+      // ==================== HORIZON 1: LONG-TERM CLIMATOLOGY (> 7 DAYS OUT) ====================
+      if (agentMsg) {
+        agentMsg.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.3rem;">
+            <div style="font-size: 0.88rem; font-weight: 800; color: #2563eb; display: flex; align-items: center; gap: 0.35rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.05rem;">calendar_month</span>
+              SafeStageWX Climatological Planning Assistant
+            </div>
+            <span style="background: rgba(37,99,235,0.12); color: #2563eb; border: 1px solid rgba(37,99,235,0.3); border-radius: 6px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700;">
+              🗓️ 15-Yr Climatology • ${daysUntil} Days Out
+            </span>
+          </div>
+          <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-primary);">
+            Hello! Your event <strong>${title}</strong> at <strong>${address}</strong> is scheduled for <strong>${date}</strong> (${daysUntil} days away).<br><br>
+            Because this date is beyond the 7-day NWS deterministic forecast window, I specialize in analyzing <strong>15-year empirical climate distributions</strong>, <strong>P10/P50/P90 percentile heat/wind/rain thresholds</strong>, and <strong>NOAA CPC ENSO (El Niño / La Niña) teleconnections</strong> to help you budget for temporary flooring, calculate heat/cold safeguards, and design ANSI E1.21 wind-resistant structures.<br><br>
+            What seasonal weather mitigation or site layout questions can I answer for you?
+          </div>
+        `;
+      }
+
+      if (promptsIcon) promptsIcon.innerText = "calendar_month";
+      if (promptsHeader) promptsHeader.innerText = `Seasonal Climatology & Planning Prompts (${monthName})`;
+
+      if (qBtn1) {
+        qBtn1.onclick = () => sendQuickPrompt(`Analyze the 15-year historical climate baselines for ${address} on ${date} (${daysUntil} days out). What are typical median and 90th percentile daytime high temperatures, rain frequency, and peak structural wind gusts?`);
+        qBtn1.innerHTML = `<span>📊 15-Year Climate Baseline & Percentiles (${monthName})</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn2) {
+        qBtn2.onclick = () => sendQuickPrompt(`Based on historical ${monthName} climate observations for ${address}, what specific temporary flooring, ground saturation mud mitigations, and ANSI E1.21 wind ballast standards should we budget for ${guests} guests?`);
+        qBtn2.innerHTML = `<span>🛡️ Site Safeguards & Ground Saturation Budgeting</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn3) {
+        qBtn3.onclick = () => sendQuickPrompt(`Explain how the current NOAA ENSO (El Niño / La Niña) phase affects regional weather patterns for ${address} around ${date}. Does it heighten tropical cyclone risks, rainfall anomalies, or extreme temperatures?`);
+        qBtn3.innerHTML = `<span>🌊 NOAA ENSO Teleconnection & Tropical Risk</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn4) {
+        qBtn4.style.display = "flex";
+        qBtn4.onclick = () => sendQuickPrompt(`Generate an outdoor event Emergency Action Plan framework for "${title}" with ${guests} guests at ${address} on ${date} based on historical ${monthName} climatological risks.`);
+        qBtn4.innerHTML = `<span>📋 Seasonal Emergency Action Plan (EAP) Framework</span><span class="material-symbols-outlined">send</span>`;
+      }
+
+      if (chatInput) chatInput.placeholder = `Ask about 15-yr climatology for ${monthName}, seasonal heat/rain percentiles, or site safeguards...`;
+
+    } else if (daysUntil > 0) {
+      // ==================== HORIZON 2: NEAR-TERM FORECAST (1 TO 7 DAYS OUT) ====================
+      if (agentMsg) {
+        agentMsg.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.3rem;">
+            <div style="font-size: 0.88rem; font-weight: 800; color: #0284c7; display: flex; align-items: center; gap: 0.35rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.05rem;">event</span>
+              SafeStageWX Forecast & Lead Time Assistant
+            </div>
+            <span style="background: rgba(2,132,199,0.12); color: #0284c7; border: 1px solid rgba(2,132,199,0.3); border-radius: 6px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700;">
+              📅 NWS 7-Day Window • ${daysUntil} Days Out
+            </span>
+          </div>
+          <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-primary);">
+            Hello! Your event <strong>${title}</strong> at <strong>${address}</strong> is approaching in <strong>${daysUntil} days</strong> on <strong>${date}</strong> for <strong>${guests} attendees</strong>.<br><br>
+            I am actively monitoring the National Weather Service 7-day point forecast, Storm Prediction Center (SPC) convective outlooks, and egress lead-time calculations so your incident command team is fully prepared before event day.<br><br>
+            What forecast trends or preparatory safety protocols would you like to review?
+          </div>
+        `;
+      }
+
+      if (promptsIcon) promptsIcon.innerText = "event";
+      if (promptsHeader) promptsHeader.innerText = `Near-Term Forecast & Preparation Prompts (${daysUntil} Days Out)`;
+
+      if (qBtn1) {
+        qBtn1.onclick = () => sendQuickPrompt(`Fetch the official NWS point forecast for ${address} leading up to ${date}. What are the expected daily highs, lows, precipitation probabilities, and wind gust trends?`);
+        qBtn1.innerHTML = `<span>🌤️ Official NWS Point Forecast & Trends (${date})</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn2) {
+        qBtn2.onclick = () => sendQuickPrompt(`Check the NOAA Storm Prediction Center (SPC) convective outlook and NWS Hazardous Weather Outlook for ${address} around ${date}. Are any severe thunderstorm boundaries or wind threats emerging?`);
+        qBtn2.innerHTML = `<span>⚡ SPC Convective & Severe Weather Outlook</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn3) {
+        qBtn3.onclick = () => sendQuickPrompt(`Calculate the required evacuation lead time (TET) and lightning trigger radius for ${guests} attendees at ${address} based on expected storm motion speed for ${date}.`);
+        qBtn3.innerHTML = `<span>⏱️ Evacuation Lead Time (TET) for ${guests} Guests</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn4) {
+        qBtn4.style.display = "flex";
+        qBtn4.onclick = () => sendQuickPrompt(`Fetch and translate the latest NWS Area Forecast Discussion (AFD) from the local forecast office for ${address} into plain-English event planning takeaways for ${date}.`);
+        qBtn4.innerHTML = `<span>💬 Translate NWS Area Forecast Discussion (AFD)</span><span class="material-symbols-outlined">send</span>`;
+      }
+
+      if (chatInput) chatInput.placeholder = `Ask about NWS point forecasts, convective outlooks, or egress timing for ${date}...`;
+
+    } else {
+      // ==================== HORIZON 3: EVENT DAY (TODAY, daysUntil === 0) ====================
+      if (agentMsg) {
+        agentMsg.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.3rem;">
+            <div style="font-size: 0.88rem; font-weight: 800; color: #dc2626; display: flex; align-items: center; gap: 0.35rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.05rem;">radar</span>
+              SafeStageWX Tactical Live Monitor Assistant
+            </div>
+            <span style="background: rgba(239,68,68,0.12); color: #dc2626; border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700;">
+              🚨 TODAY IS EVENT DAY • Live Radar Sync
+            </span>
+          </div>
+          <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-primary);">
+            <strong>TODAY IS EVENT DAY:</strong> Monitoring live real-time conditions for <strong>${title}</strong> at <strong>${address}</strong> (${guests} guests, 20-Mile Radius Active).<br><br>
+            I am continuously tracking active NWS warnings/watches, SPC mesoscale discussions, Doppler radar storm cell vectors, and lightning arrival times.<br><br>
+            What tactical weather safety guidance, shelter trigger advisories, or PA announcement scripts do you need right now?
+          </div>
+        `;
+      }
+
+      if (promptsIcon) promptsIcon.innerText = "radar";
+      if (promptsHeader) promptsHeader.innerText = "Live Tactical Safety & Real-Time Prompts (Today)";
+
+      if (qBtn1) {
+        qBtn1.onclick = () => sendQuickPrompt(`Perform an immediate live threat check within a 20-mile radius of ${address} (coordinates ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}). Are there any active NWS warnings, watches, or SPC mesoscale discussions affecting our venue right now?`);
+        qBtn1.innerHTML = `<span>🔍 Live 20-Mile Threat & Polygon Check (${shortLoc})</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn2) {
+        qBtn2.onclick = () => sendQuickPrompt(`Analyze approaching Doppler radar echoes near ${address}. If convective storm cells are detected, what is their speed, trajectory, distance, and estimated time until arrival at our 8-mile trigger perimeter?`);
+        qBtn2.innerHTML = `<span>📡 Radar Cell Vector & Arrival Time (TUA)</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn3) {
+        qBtn3.onclick = () => sendQuickPrompt(`Generate an urgent weather PA safety announcement and immediate evacuation execution checklist for ${guests} attendees at ${address} based on current real-time weather threats.`);
+        qBtn3.innerHTML = `<span>📢 Urgent PA Broadcast & Evacuation Checklist</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn4) {
+        qBtn4.style.display = "flex";
+        qBtn4.onclick = () => sendQuickPrompt(`Fetch the most recent NWS Area Forecast Discussion (AFD) for ${address} and summarize today's convective storm, wind, and heat index impacts.`);
+        qBtn4.innerHTML = `<span>💬 Today's Local NWS Meteorologist Briefing</span><span class="material-symbols-outlined">send</span>`;
+      }
+
+      if (chatInput) chatInput.placeholder = "Ask about live radar threats, active warning polygons, or emergency PA scripts...";
+    }
+  }
+
+  // ==================== DYNAMIC DATE & UI MODE CONTROLLER ====================
+  async function applyEventDateAndUIMode(date, title, address, guests) {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    const evtDate = new Date(date + "T12:00:00");
+    const daysUntil = Math.round((evtDate - today) / (1000 * 60 * 60 * 24));
+    const shortLoc = (address || "").split(",")[0] || address || "Venue";
+
+    const tabIcon = document.getElementById("tab-threat-icon");
+    const tabLabel = document.getElementById("tab-threat-label");
+    const modeSelector = document.getElementById("view-mode-selector-bar");
+    const liveContainer = document.getElementById("live-threat-container");
+    const climoContainer = document.getElementById("climatology-container");
+    const alertsList = document.getElementById("active-alerts-list");
+    const bannerTag = document.getElementById("banner-tag");
+    const bannerTime = document.getElementById("banner-time");
+    const bannerTitle = document.getElementById("banner-event-title");
+    const bannerSub = document.getElementById("banner-event-sub");
+    const ctaBox = document.getElementById("call-to-action-box");
+
+    if (bannerTitle) bannerTitle.innerText = `${title} (${shortLoc})`;
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthName = monthNames[evtDate.getMonth()] || "Season";
+
+    // Update AI Assistant Tab 2 welcome message, sample prompts & placeholder
+    updateAIAssistantForDateHorizon(daysUntil, date, title, address, guests, monthName);
+
+    if (daysUntil > 7) {
+      // BEYOND 7-DAY NWS FORECAST WINDOW: PURE CLIMATOLOGICAL SUMMARY
+      if (tabLabel) tabLabel.innerText = "Climatological Summary";
+      if (tabIcon) tabIcon.innerText = "analytics";
+
+      // Hide live radar, active warning polygons, and decision countdown ring
+      if (liveContainer) liveContainer.style.display = "none";
+      if (modeSelector) modeSelector.style.display = "none";
+      if (alertsList) alertsList.style.display = "none";
+
+      // Show climatological summary container
+      if (climoContainer) climoContainer.style.display = "flex";
+
+      // Transform Top Banner to Climatological Summary
+      if (bannerTag) {
+        bannerTag.style.background = "rgba(56, 189, 248, 0.18)";
+        bannerTag.style.color = "#38bdf8";
+        bannerTag.style.border = "1px solid #38bdf8";
+        bannerTag.innerHTML = "<span class=\"material-symbols-outlined\" style=\"font-size: 1rem;\">calendar_month</span> 🗓️ CLIMATOLOGICAL SUMMARY";
+      }
+      if (bannerTime) bannerTime.innerText = `15-Year Historical Baseline (${daysUntil} Days Out)`;
+      if (bannerSub) bannerSub.innerText = `${address} • ${date} • ${daysUntil} Days Away • ${guests} Guests`;
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthName = monthNames[evtDate.getMonth()] || "Season";
+    const initialThreat = generateSeasonalThreatSummary(monthName, date, currentClimoReport);
+
+    if (ctaBox) {
+        ctaBox.style.background = "rgba(15, 23, 42, 0.85)";
+        ctaBox.style.borderColor = "rgba(56, 189, 248, 0.6)";
+        ctaBox.style.color = "#f8fafc";
+        ctaBox.innerHTML = `
+          <div style="font-size: 0.85rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined" style="font-size: 1.05rem; color: #38bdf8;">calendar_month</span>
+            <span>LONG-TERM SEASONAL PLANNING HORIZON (${daysUntil} DAYS OUT)</span>
+          </div>
+          <div style="line-height: 1.5; font-size: 0.82rem; color: #f1f5f9;">
+            This event is scheduled for <strong style="color: #ffffff; text-decoration: underline decoration-sky-400;">${date}</strong> (${daysUntil} days away), exceeding the National Weather Service's 7-day deterministic forecast window. Live Doppler radar, active warning polygons, and operational countdowns will automatically activate when the event is within 7 days.
+          </div>
+          <div id="cta-seasonal-threat-box" style="margin-top: 0.45rem; padding-top: 0.4rem; border-top: 1px dashed rgba(56, 189, 248, 0.35); font-size: 0.80rem; display: flex; align-items: flex-start; gap: 0.4rem; line-height: 1.45;">
+            <span class="material-symbols-outlined" style="font-size: 1.05rem; color: #facc15; flex-shrink: 0; margin-top: 1px;">warning</span>
+            <div>
+              <strong style="color: #fef08a; text-transform: uppercase; letter-spacing: 0.02em;">Major Threat This Time of Year (${monthName}):</strong>
+              <span id="cta-threat-text" style="color: #f8fafc; margin-left: 0.25rem;">${initialThreat}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Load Climatology report
+      await loadClimatologyReport(currentLat, currentLon, date, address, guests);
+
+    } else {
+      // WITHIN 7-DAY FORECAST WINDOW: LIVE THREAT MONITOR
+      if (tabLabel) tabLabel.innerText = "Threat Monitor";
+      if (tabIcon) tabIcon.innerText = "radar";
+
+      // Show live radar & warning containers
+      if (liveContainer) liveContainer.style.display = "flex";
+      if (modeSelector) modeSelector.style.display = "none";
+      if (alertsList) alertsList.style.display = "block";
+
+      // Hide climatological summary container
+      if (climoContainer) climoContainer.style.display = "none";
+
+      // Reset Top Banner to Live Warning Monitor
+      const isToday = (daysUntil === 0);
+      if (bannerTime) bannerTime.innerText = isToday ? "TODAY'S EVENT • LIVE THREAT MONITOR" : `Live Forecast (${daysUntil} Days Out)`;
+      if (bannerSub) bannerSub.innerText = `${address} • ${date} • ${isToday ? "Today" : daysUntil + " Days Out"} • ${guests} Guests`;
+
+      // Query Current Threat (Synthesizes live alerts, point forecast & AFD), Forecast Discussion & HWO
+      await loadCurrentThreat(currentLat, currentLon, date, isToday);
+      await loadNWSForecastDiscussion(currentLat, currentLon);
+      await loadNWSHazardousWeatherOutlook(currentLat, currentLon);
+    }
+  }
 
   async function handleEventSetupSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
@@ -1506,6 +2020,15 @@ Please import and acknowledge these parameters for future decision making and ev
     const date = document.getElementById('setup-date').value;
     const time = document.getElementById('setup-time').value;
     const guests = parseInt(document.getElementById('setup-guests').value) || 100;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (!date || date < todayStr) {
+      alert('Please select today or a future date for your event.');
+      document.getElementById('setup-date').value = todayStr;
+      btn.innerHTML = `<span class="material-symbols-outlined">bolt</span> Start Weather Safeguard`;
+      btn.disabled = false;
+      return;
+    }
 
     currentVenueAddress = address;
     const shortLoc = address.split(',')[0] || address;
@@ -1554,32 +2077,16 @@ Please import and acknowledge these parameters for future decision making and ev
       tab3Iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${(currentLon-0.015).toFixed(4)}%2C${(currentLat-0.01).toFixed(4)}%2C${(currentLon+0.015).toFixed(4)}%2C${(currentLat+0.01).toFixed(4)}&amp;layer=mapnik&amp;marker=${currentLat}%2C${currentLon}`;
     }
 
-    // Update Quick Agent Query Buttons
-    const qBtn1 = document.getElementById('quick-prompt-btn-1');
-    if (qBtn1) {
-      qBtn1.onclick = () => sendQuickPrompt(`Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of ${address} (coordinates ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}) and advise on safety actions.`);
-      qBtn1.innerHTML = `<span>🔍 20-Mile Radius Threat Check (${currentLat.toFixed(3)}, ${currentLon.toFixed(3)})</span><span class="material-symbols-outlined">send</span>`;
-    }
-    const qBtn2 = document.getElementById('quick-prompt-btn-2');
-    if (qBtn2) {
-      qBtn2.onclick = () => sendQuickPrompt(`Generate an Emergency Action Plan for an outdoor event "${title}" with ${guests} guests at ${address} on ${date} starting at ${time}.`);
-      qBtn2.innerHTML = `<span>📋 ${title} Emergency Action Plan</span><span class="material-symbols-outlined">send</span>`;
-    }
+    // Quick agent query buttons updated dynamically in updateAIAssistantForDateHorizon
 
-    // Update Initial Agent Chat Welcome Message
-    const agentMsg = document.getElementById('initial-agent-msg');
-    if (agentMsg) {
-      agentMsg.innerHTML = `<strong>⚡ SafeStageWX Assistant</strong><br>Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>${address}</strong> (${title}, ${guests} guests, ${date} at ~${time}, 20-Mile Radius Buffer Active).<br><br>How can I help protect your venue and attendees today?`;
-    }
+    // AI Assistant Tab 2 welcome message updated dynamically in applyEventDateAndUIMode
 
     // Update Attendee Count in Lead Time Calculator & recalculate
     document.getElementById('attendees-count').value = guests;
     calculateEvacTime();
 
-    // Check Live NWS Alerts, Forecast Discussion, & HWO for newly resolved coordinates
-    await checkLiveNWSAlerts(currentLat, currentLon);
-    await loadNWSForecastDiscussion(currentLat, currentLon);
-    await loadNWSHazardousWeatherOutlook(currentLat, currentLon);
+    // Apply Climatological Summary or Live Threat Monitor based on date
+    await applyEventDateAndUIMode(date, title, address, guests);
 
     // Save in LocalStorage
     localStorage.setItem('safestagewx_event', JSON.stringify({ title, address, date, time, guests, lat: currentLat, lon: currentLon }));
@@ -1617,8 +2124,422 @@ Please import and acknowledge these parameters for future decision making and ev
   }
 
   // Live NWS Alert Polygon Checker for Coordinates
+  
+  // ==================== LONG-TERM CLIMATOLOGY & ENSO ENGINE ====================
+  let annualChartInstance = null;
+  let distChartInstance = null;
+  let currentClimoReport = null;
+
+  function switchThreatViewMode(mode) {
+    const climoBtn = document.getElementById("mode-btn-climo");
+    const liveBtn = document.getElementById("mode-btn-live");
+    const climoCont = document.getElementById("climatology-container");
+    const liveCont = document.getElementById("live-threat-container");
+
+    if (!climoBtn || !liveBtn || !climoCont || !liveCont) return;
+
+    if (mode === "climo") {
+      climoBtn.style.background = "var(--accent)";
+      climoBtn.style.color = "white";
+      liveBtn.style.background = "transparent";
+      liveBtn.style.color = "var(--text-secondary)";
+      climoCont.style.display = "flex";
+      liveCont.style.display = "none";
+    } else {
+      liveBtn.style.background = "var(--accent)";
+      liveBtn.style.color = "white";
+      climoBtn.style.background = "transparent";
+      climoBtn.style.color = "var(--text-secondary)";
+      liveCont.style.display = "flex";
+      climoCont.style.display = "none";
+    }
+  }
+
+  async function loadClimatologyReport(lat = currentLat, lon = currentLon, targetDateStr = null, address = currentVenueAddress, guests = 100) {
+    const dateInput = targetDateStr || (document.getElementById("setup-date") ? document.getElementById("setup-date").value : "2026-08-13");
+    
+    // Calculate days until event
+    let daysUntil = 30;
+    try {
+      const evtDate = new Date(dateInput + "T12:00:00");
+      const today = new Date();
+      today.setHours(12, 0, 0, 0);
+      daysUntil = Math.round((evtDate - today) / (1000 * 60 * 60 * 24));
+    } catch (e) {}
+
+    const daysBadge = document.getElementById("climo-days-badge");
+    if (daysBadge) {
+      daysBadge.innerText = daysUntil > 0 ? `${daysUntil} Days Until Event` : (daysUntil === 0 ? "Event is Today" : `${Math.abs(daysUntil)} Days Ago`);
+    }
+
+    // Default to Climatology View if event is > 7 days in future
+    if (daysUntil > 7) {
+      switchThreatViewMode("climo");
+      const bTag = document.getElementById("banner-tag");
+      if (bTag) {
+        bTag.style.background = "rgba(56, 189, 248, 0.18)";
+        bTag.style.color = "#38bdf8";
+        bTag.style.borderColor = "#38bdf8";
+        bTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">calendar_month</span> 🗓️ CLIMATOLOGICAL SUMMARY (${daysUntil} Days Out)`;
+      }
+    } else {
+      switchThreatViewMode("live");
+    }
+
+    try {
+      const res = await fetch(`/api/climatology?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&target_date=${encodeURIComponent(dateInput)}&location=${encodeURIComponent(address || "")}&attendees=${guests}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      if (!json || json.status !== "success" || !json.data) return;
+
+      currentClimoReport = json.data;
+      renderClimatologyUI(currentClimoReport, address, dateInput, guests);
+    } catch (err) {
+      console.warn("Failed to load climatology report:", err);
+    }
+  }
+
+  function renderClimatologyUI(report, address, dateInput, guests) {
+    const m = report.metrics;
+    const enso = report.enso;
+
+    // Title & Badges
+    const bTitle = document.getElementById("climo-banner-title");
+    if (bTitle) bTitle.innerText = `${report.location} • ${report.month_name} Climate Profile`;
+
+    const posText = document.getElementById("climo-annual-pos-text");
+    if (posText) posText.innerText = `Annual Positioning: ${report.annual_position_desc}`;
+
+    const sampleBadge = document.getElementById("sample-days-badge");
+    if (sampleBadge) sampleBadge.innerText = `15-Yr Sample (${m.sample_size_days} Days)`;
+
+    const annualDesc = document.getElementById("annual-spotlight-desc");
+    if (annualDesc) {
+      annualDesc.innerHTML = `⭐ <strong>Event Spotlight (${dateInput}):</strong> Your event falls in the <strong>${report.annual_position_desc}</strong> for ${report.location}. Typical daytime highs range from <strong>${m.temp_high.p10}°F to ${m.temp_high.p90}°F</strong> (median: ${m.temp_high.median}°F).`;
+    }
+
+    const ctaThreatText = document.getElementById("cta-threat-text");
+    if (ctaThreatText) {
+      ctaThreatText.innerText = generateSeasonalThreatSummary(report.month_name, dateInput, report);
+    }
+
+    // Chart 1: Annual Climate Ribbon
+    renderAnnualChart(report.annual_curve, report.target_month_index, dateInput);
+
+    // Chart 2: Micro-Seasonal Distribution
+    renderDistributionChart(report.distributions, m);
+
+    // Stats Grid Pills
+    const p50H = document.getElementById("p50-high");
+    if (p50H) p50H.innerText = `${m.temp_high.median}°F`;
+    const p1090H = document.getElementById("p10-p90-high");
+    if (p1090H) p1090H.innerText = `${m.temp_high.p10}°F – ${m.temp_high.p90}°F`;
+    const heatSub = document.getElementById("heat-threat-sub");
+    if (heatSub) heatSub.innerText = `Record Max: ${m.temp_high.record_max}°F | >90°F on ${m.temp_high.pct_over_90}% of days`;
+
+    const p50L = document.getElementById("p50-low");
+    if (p50L) p50L.innerText = `${m.temp_low.median}°F`;
+    const p1090L = document.getElementById("p10-p90-low");
+    if (p1090L) p1090L.innerText = `${m.temp_low.p10}°F – ${m.temp_low.p90}°F`;
+    const freezeSub = document.getElementById("freeze-threat-sub");
+    if (freezeSub) freezeSub.innerText = `Record Min: ${m.temp_low.record_min}°F | Freeze on ${m.temp_low.pct_freezing}% of nights`;
+
+    // ENSO Spotlight
+    const ensoBadge = document.getElementById("enso-phase-badge");
+    if (ensoBadge) ensoBadge.innerText = enso.enso_phase || "ENSO-Neutral";
+    const ensoHead = document.getElementById("enso-headline");
+    if (ensoHead) ensoHead.innerText = `Active Phase: ${enso.enso_phase} (${enso.advisory_headline || "NOAA Advisory"})`;
+    const ensoBody = document.getElementById("enso-teleconnection-body");
+    if (ensoBody) {
+      ensoBody.innerHTML = `<strong>${report.region} Regional Impact in ${report.month_name}:</strong><br>• Temperature: ${enso.temperature_anomaly}<br>• Precipitation: ${enso.precipitation_anomaly}<br>• <strong>Event Planning Takeaway:</strong> ${enso.operational_action}`;
+    }
+    const tropBox = document.getElementById("enso-tropical-box");
+    const tropText = document.getElementById("enso-tropical-text");
+    if (tropBox && tropText) {
+      if (enso.tropical_impact && enso.tropical_impact.includes("Heightened")) {
+        tropBox.style.display = "block";
+        tropText.innerText = enso.tropical_impact;
+      } else {
+        tropBox.style.display = "none";
+      }
+    }
+
+    // Precipitation & Wind
+    const rOdds = document.getElementById("climo-rain-odds");
+    if (rOdds) rOdds.innerText = `${m.precip.rain_day_prob_pct}%`;
+    const hRain = document.getElementById("climo-heavy-rain");
+    if (hRain) hRain.innerText = `${m.precip.heavy_rain_prob_pct}%`;
+    const p90R = document.getElementById("climo-p90-rain");
+    if (p90R) p90R.innerText = `${m.precip.p90_wet_day_volume_inches} in`;
+
+    const p90G = document.getElementById("climo-p90-gust");
+    if (p90G) p90G.innerText = `${m.wind.p90_gust_mph}`;
+    const pct25 = document.getElementById("climo-pct-25");
+    if (pct25) pct25.innerText = `${m.wind.pct_days_over_25mph}%`;
+    const pct35 = document.getElementById("climo-pct-35");
+    if (pct35) pct35.innerText = `${m.wind.pct_days_over_35mph}%`;
+
+    // Safeguards list
+    const sList = document.getElementById("climo-safeguards-list");
+    if (sList && report.hazards) {
+      sList.innerHTML = report.hazards.map(h => `
+        <div style="background: var(--bg); border: 1px solid var(--border); border-left: 4px solid ${h.level === "HIGH" || h.level === "EXTREME" ? "#ef4444" : "#f59e0b"}; padding: 0.6rem 0.75rem; border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary);">${h.title}</div>
+            <span class="status-tag" style="font-size: 0.68rem; background: ${h.level === "HIGH" || h.level === "EXTREME" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)"}; color: ${h.level === "HIGH" || h.level === "EXTREME" ? "#dc2626" : "#d97706"};">${h.level} RISK</span>
+          </div>
+          <div style="font-size: 0.74rem; color: var(--text-secondary); margin: 0.25rem 0;">${h.stat_callout}</div>
+          <ul style="margin: 0.35rem 0 0 1rem; padding: 0; font-size: 0.74rem; color: var(--text-primary); line-height: 1.45;">
+            ${h.safeguards.map(s => `<li>${s}</li>`).join("")}
+          </ul>
+        </div>
+      `).join("");
+    }
+
+    // Connect 1-Tap Agent Planning Button
+    const agentBtn = document.getElementById("import-climo-agent-btn");
+    if (agentBtn) {
+      agentBtn.onclick = () => {
+        sendQuickPrompt(`I am planning an outdoor event "${document.getElementById("setup-title")?.value || "Event"}" at ${address} on ${dateInput} with ${guests} guests. Based on the 15-year climatological baseline, the median high is ${m.temp_high.median}°F (P90: ${m.temp_high.p90}°F), rain day odds are ${m.precip.rain_day_prob_pct}%, 90th percentile wind gust is ${m.wind.p90_gust_mph} mph, and the active ENSO phase is ${enso.enso_phase}. Please generate an Emergency Action Plan and operational site safety checklist with safeguards for heat/hydration, temporary flooring/mud mitigation, and ANSI E1.21 wind ballast.`);
+      };
+    }
+  }
+
+  function renderAnnualChart(annualCurve, targetMonthIdx, targetDateStr) {
+    const canvas = document.getElementById("annualClimateCanvas");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    if (annualChartInstance) annualChartInstance.destroy();
+
+    const labels = annualCurve.map(c => c.name);
+    const highs = annualCurve.map(c => c.avg_high);
+    const lows = annualCurve.map(c => c.avg_low);
+    const pointColors = annualCurve.map((c, idx) => idx === targetMonthIdx ? "#f59e0b" : "transparent");
+    const pointRadii = annualCurve.map((c, idx) => idx === targetMonthIdx ? 7 : 3);
+
+    annualChartInstance = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Typical High (°F)",
+            data: highs,
+            borderColor: "#ef4444",
+            backgroundColor: "rgba(239, 68, 68, 0.12)",
+            fill: "+1",
+            tension: 0.35,
+            pointBackgroundColor: pointColors,
+            pointBorderColor: pointColors.map(c => c === "#f59e0b" ? "#ffffff" : "transparent"),
+            pointBorderWidth: 2,
+            pointRadius: pointRadii,
+          },
+          {
+            label: "Typical Low (°F)",
+            data: lows,
+            borderColor: "#3b82f6",
+            backgroundColor: "transparent",
+            fill: false,
+            tension: 0.35,
+            pointBackgroundColor: pointColors.map(c => c === "#f59e0b" ? "#3b82f6" : "transparent"),
+            pointRadius: pointRadii,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { position: "top", labels: { boxWidth: 12, font: { size: 11 } } },
+          tooltip: {
+            callbacks: {
+              afterTitle: function(items) {
+                if (items[0].dataIndex === targetMonthIdx) {
+                  return `⭐ Event Window: ${targetDateStr}`;
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            grid: { color: "rgba(0,0,0,0.05)" },
+            ticks: { callback: v => v + "°F", font: { size: 10 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 10 } }
+          }
+        }
+      }
+    });
+  }
+
+  function renderDistributionChart(distributions, metrics) {
+    const canvas = document.getElementById("distHighLowCanvas");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    if (distChartInstance) distChartInstance.destroy();
+
+    const highBins = distributions.highs;
+    const lowBins = distributions.lows;
+
+    distChartInstance = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: highBins.labels,
+        datasets: [
+          {
+            label: "Daytime High Frequency (Days Observed)",
+            data: highBins.counts,
+            backgroundColor: highBins.labels.map(lbl => {
+              const upper = parseFloat(lbl.split("–")[1] || "0");
+              return upper >= 90 ? "rgba(239, 68, 68, 0.75)" : "rgba(249, 115, 22, 0.7)";
+            }),
+            borderColor: "transparent",
+            borderRadius: 4,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "top", labels: { boxWidth: 12, font: { size: 11 } } },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.parsed.y} Historical Days in this Temp Bin`,
+              afterBody: () => [
+                `P10 High: ${metrics.temp_high.p10}°F`,
+                `Median High: ${metrics.temp_high.median}°F`,
+                `P90 High: ${metrics.temp_high.p90}°F`,
+              ]
+            }
+          }
+        },
+        scales: {
+          y: {
+            grid: { color: "rgba(0,0,0,0.05)" },
+            ticks: { font: { size: 10 } },
+            title: { display: true, text: "Sample Days", font: { size: 10 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 9 }, maxRotation: 30 }
+          }
+        }
+      }
+    });
+  }
+  // ==================== END CLIMATOLOGY ENGINE ====================
+
+  async function loadCurrentThreat(lat = currentLat, lon = currentLon, dateStr = "", isToday = true) {
+    const bannerTag = document.getElementById("banner-tag");
+    const alertsList = document.getElementById("active-alerts-list");
+    const ctaBox = document.getElementById("call-to-action-box");
+    const mdStatus = document.getElementById("md-status");
+
+    try {
+      const res = await fetch(`/api/current-threat?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}&event_date=${encodeURIComponent(dateStr)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data || data.status !== "success") return;
+
+      const sev = data.severity || "MONITORING";
+      const icon = data.icon || "bolt";
+      const headline = data.headline || "Active Weather Monitoring";
+      const desc = data.description || "Monitoring conditions for event hours.";
+      const action = data.action || "Maintain standard situational awareness.";
+      const alerts = data.active_alerts || [];
+
+      // 1. Update Banner Tag
+      if (bannerTag) {
+        if (sev === "CRITICAL") {
+          bannerTag.style.background = "rgba(239, 68, 68, 0.25)";
+          bannerTag.style.color = "#fca5a5";
+          bannerTag.style.border = "1px solid #ef4444";
+          bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">warning</span> 🚨 CURRENT LIVE THREAT: WARNING ACTIVE`;
+        } else if (sev === "HIGH" || sev === "ELEVATED") {
+          bannerTag.style.background = "rgba(234, 179, 8, 0.2)";
+          bannerTag.style.color = "#fde047";
+          bannerTag.style.border = "1px solid #eab308";
+          bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">${icon}</span> ⚡ ${isToday ? "CURRENT THREAT (TODAY)" : "EVENT DAY THREAT"}: ${data.short_forecast || 'ELEVATED'}`;
+        } else {
+          bannerTag.style.background = "rgba(16, 185, 129, 0.2)";
+          bannerTag.style.color = "#6ee7b7";
+          bannerTag.style.border = "1px solid #10b981";
+          bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">check_circle</span> ✅ ${isToday ? "TODAY'S EVENT" : "CONDITIONS"}: MONITORING NORMAL`;
+        }
+      }
+
+      // 2. Update Active Alerts List
+      if (alertsList) {
+        if (alerts.length > 0) {
+          alertsList.style.display = "block";
+          alertsList.style.color = sev === "CRITICAL" ? "#fee2e2" : "#fef08a";
+          alertsList.innerHTML = `🚨 <strong>Active NWS Bulletins (${lat.toFixed(3)}° N, ${lon.toFixed(3)}° W):</strong> ${alerts.join(" • ")}`;
+        } else {
+          alertsList.style.display = "block";
+          alertsList.style.color = "#a7f3d0";
+          alertsList.innerHTML = `✅ No active NWS warning polygons directly affecting coordinates.`;
+        }
+      }
+
+      // 3. Update Call To Action Box to FOCUS ON CURRENT THREAT
+      if (ctaBox) {
+        ctaBox.style.background = "rgba(15, 23, 42, 0.85)";
+        ctaBox.style.borderColor = sev === "CRITICAL" ? "rgba(239, 68, 68, 0.6)" : (sev === "HIGH" || sev === "ELEVATED" ? "rgba(250, 204, 21, 0.6)" : "rgba(16, 185, 129, 0.5)");
+        ctaBox.style.color = "#f8fafc";
+        ctaBox.innerHTML = `
+          <div style="font-size: 0.85rem; font-weight: 800; color: ${sev === 'CRITICAL' ? '#fca5a5' : (sev === 'HIGH' || sev === 'ELEVATED' ? '#facc15' : '#6ee7b7')}; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">${icon}</span>
+            <span>${isToday ? "CURRENT THREAT (TODAY'S EVENT):" : `UPCOMING FORECAST THREAT (${data.short_forecast || 'EVENT DAY'}):`}</span>
+          </div>
+          <div style="line-height: 1.5; font-size: 0.82rem; color: #f1f5f9;">
+            <strong style="color: #ffffff;">${headline}:</strong> ${desc}
+          </div>
+          <div style="margin-top: 0.45rem; padding-top: 0.4rem; border-top: 1px dashed rgba(250, 204, 21, 0.35); font-size: 0.78rem; color: #fef9c3; display: flex; align-items: flex-start; gap: 0.4rem; line-height: 1.45;">
+            <span class="material-symbols-outlined" style="font-size: 1rem; color: #facc15; flex-shrink: 0; margin-top: 1px;">shield</span>
+            <div>
+              <strong style="color: #ffffff;">Immediate Operational Protocol:</strong> ${action}
+            </div>
+          </div>
+        `;
+      }
+
+      // 4. Update Decision Metric card status
+      if (mdStatus) {
+        if (sev === "CRITICAL") {
+          mdStatus.style.color = "#ef4444";
+          mdStatus.innerText = `⚠️ ${alerts[0] || 'Warning Polygon'}`;
+        } else if (alerts.length > 0) {
+          mdStatus.style.color = "#f59e0b";
+          mdStatus.innerText = `⚠️ ${alerts[0]}`;
+        } else {
+          mdStatus.style.color = "var(--text-primary)";
+          mdStatus.innerText = "No Active Polygon";
+        }
+      }
+
+    } catch (err) {
+      console.warn("Failed to load current threat:", err);
+      await checkLiveNWSAlerts(lat, lon);
+    }
+  }
+
   async function checkLiveNWSAlerts(lat = currentLat, lon = currentLon) {
     try {
+      const dateInput = document.getElementById("setup-date") ? document.getElementById("setup-date").value : "";
+      if (dateInput) {
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        const evtDate = new Date(dateInput + "T12:00:00");
+        const daysUntil = Math.round((evtDate - today) / (1000 * 60 * 60 * 24));
+        if (daysUntil > 7) {
+          return; // Outside 7-day forecast window: do not fetch or display live warnings
+        }
+      }
       const res = await fetch(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`, {
         headers: { 'User-Agent': 'SafeStageWX (event-weather-safeguard)' }
       });
@@ -1635,17 +2556,19 @@ Please import and acknowledge these parameters for future decision making and ev
         const eventSummary = events.join(' • ');
         
         bannerTag.style.background = 'rgba(239, 68, 68, 0.25)';
-        bannerTag.style.color = '#ef4444';
+        bannerTag.style.color = '#fca5a5';
         bannerTag.style.border = '1px solid #ef4444';
         bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">warning</span> ⚠️ WARNING POLYGON ACTIVE`;
         
         if (alertsList) {
+          alertsList.style.display = 'block';
+          alertsList.style.color = '#fee2e2';
           alertsList.innerHTML = `🚨 <strong>Active NWS Warnings at Venue (${lat.toFixed(3)}° N, ${lon.toFixed(3)}° W):</strong> ${eventSummary}`;
         }
         if (ctaBox) {
           ctaBox.style.background = 'rgba(234, 179, 8, 0.18)';
-          ctaBox.style.borderColor = '#eab308';
-          ctaBox.style.color = '#fef08a';
+          ctaBox.style.borderColor = '#facc15';
+          ctaBox.style.color = '#fef9c3';
           ctaBox.innerHTML = getCallToActionForAlerts(events);
         }
         if (mdStatus) {
@@ -1653,18 +2576,20 @@ Please import and acknowledge these parameters for future decision making and ev
           mdStatus.innerText = `⚠️ ${events[0] || 'Active Polygon'}`;
         }
       } else {
-        bannerTag.style.background = 'rgba(16, 185, 129, 0.15)';
-        bannerTag.style.color = '#059669';
-        bannerTag.style.border = 'none';
+        bannerTag.style.background = 'rgba(16, 185, 129, 0.2)';
+        bannerTag.style.color = '#6ee7b7';
+        bannerTag.style.border = '1px solid #10b981';
         bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">check_circle</span> CLEAR / MONITORING`;
         
         if (alertsList) {
+          alertsList.style.display = 'block';
+          alertsList.style.color = '#a7f3d0';
           alertsList.innerHTML = `✅ No active NWS warning polygons directly affecting coordinates.`;
         }
         if (ctaBox) {
-          ctaBox.style.background = 'rgba(16, 185, 129, 0.15)';
+          ctaBox.style.background = 'rgba(16, 185, 129, 0.18)';
           ctaBox.style.borderColor = '#10b981';
-          ctaBox.style.color = '#a7f3d0';
+          ctaBox.style.color = '#ecfdf5';
           ctaBox.innerHTML = getCallToActionForAlerts([]);
         }
         if (mdStatus) {
@@ -1743,40 +2668,38 @@ Please import and acknowledge these parameters for future decision making and ev
       tab3Iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${(currentLon-0.015).toFixed(4)}%2C${(currentLat-0.01).toFixed(4)}%2C${(currentLon+0.015).toFixed(4)}%2C${(currentLat+0.01).toFixed(4)}&amp;layer=mapnik&amp;marker=${currentLat}%2C${currentLon}`;
     }
 
-    // Update Quick Agent Query Buttons
-    const qBtn1 = document.getElementById('quick-prompt-btn-1');
-    if (qBtn1) {
-      qBtn1.onclick = () => sendQuickPrompt(`Check current SPC mesoscale discussions and NWS alerts within a 20 mile radius of ${address} (coordinates ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}) and advise on safety actions.`);
-      qBtn1.innerHTML = `<span>🔍 20-Mile Radius Threat Check (${currentLat.toFixed(3)}, ${currentLon.toFixed(3)})</span><span class="material-symbols-outlined">send</span>`;
-    }
-    const qBtn2 = document.getElementById('quick-prompt-btn-2');
-    if (qBtn2) {
-      qBtn2.onclick = () => sendQuickPrompt(`Generate an Emergency Action Plan for an outdoor event "${title}" with ${guests} guests at ${address} on ${date} starting at ${time}.`);
-      qBtn2.innerHTML = `<span>📋 ${title} Emergency Action Plan</span><span class="material-symbols-outlined">send</span>`;
-    }
+    // Quick agent query buttons updated dynamically in updateAIAssistantForDateHorizon
 
-    // Update Initial Agent Chat Welcome Message
-    const agentMsg = document.getElementById('initial-agent-msg');
-    if (agentMsg) {
-      agentMsg.innerHTML = `<strong>SafeStageWX Assistant</strong><br>Hello! I am monitoring NWS Watches & Warnings, SPC Mesoscale Discussions, and outdoor safety protocols for <strong>${address}</strong> (${title}, ${guests} guests, ${date} at ~${time}, 20-Mile Radius Buffer Active).<br><br>How can I help protect your venue and attendees today?`;
-    }
+    // AI Assistant Tab 2 welcome message updated dynamically in applyEventDateAndUIMode
 
     // Update Attendee Count
     document.getElementById('attendees-count').value = guests;
     calculateEvacTime();
 
-    // Check Live NWS Alerts, Forecast Discussion, & HWO for saved venue
-    await checkLiveNWSAlerts(currentLat, currentLon);
-    await loadNWSForecastDiscussion(currentLat, currentLon);
-    await loadNWSHazardousWeatherOutlook(currentLat, currentLon);
+    // Apply Climatological Summary or Live Threat Monitor based on date
+    await applyEventDateAndUIMode(date, title, address, guests);
   }
 
   // Auto-load saved event or show onboarding modal on first visit
   window.addEventListener('DOMContentLoaded', async () => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const dateInput = document.getElementById('setup-date');
+    if (dateInput) {
+      dateInput.min = todayStr;
+      if (!dateInput.value || dateInput.value < todayStr) {
+        dateInput.value = todayStr;
+      }
+    }
+
     const saved = localStorage.getItem('safestagewx_event');
     if (saved) {
       try {
         const evt = JSON.parse(saved);
+        if (!evt.date || evt.date < todayStr) {
+          evt.date = todayStr;
+          localStorage.setItem('safestagewx_event', JSON.stringify(evt));
+        }
         document.getElementById('setup-title').value = evt.title || '';
         document.getElementById('setup-address').value = evt.address || '';
         document.getElementById('setup-date').value = evt.date || '';

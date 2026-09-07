@@ -98,7 +98,15 @@ domain_instruction = (
     "   - Query NOAA Storm Prediction Center (SPC) Mesoscale Discussions (spc.noaa.gov/products/md/) to determine if event coordinates fall within active severe weather boundaries.\n"
     "   - Translate SPC technical discussions into plain English crowd safety actions for event planners.\n"
     "5. Weather Safety Staff Training & Resources: Inform event staff that safety & awareness brochures and "
-    "products/services training are available. Provide event liaison contact details when requested: Tom Frieders at (406) 652-0851 ext. 223.\n\n"
+    "products/services training are available. Provide event liaison contact details when requested: Tom Frieders at (406) 652-0851 ext. 223.\n"
+    "6. Date Horizon & Operational Climatology vs. Live Forecast Mandate:\n"
+    "   - Event Months in Advance (> 7 Days Away): Deterministic NWS daily point forecasts and live radar are unavailable beyond 7 days. "
+    "When an event is more than 7 days out (or months away), you MUST use `get_climatological_risk_profile` to evaluate 15-year historical climate baselines, "
+    "percentile ranges (P10/P50/P90 for daytime highs, overnight lows, rainfall volume, and wind gusts), and NOAA ENSO (El Niño / La Niña) teleconnections. "
+    "Focus your advice on seasonal hazard envelopes, site budgeting, temporary flooring/mud sills, and ANSI E1.21 ballast standards.\n"
+    "   - Event in Near-Term Window (1 to 7 Days Away): Query `get_nws_point_forecast`, `get_nws_forecast_discussion`, and `get_nws_hazardous_weather_outlook`. "
+    "Focus on deterministic multi-day trends and preparatory egress thresholds.\n"
+    "   - Event is Today: Focus on real-time live threat monitoring using `get_nws_active_alerts`, `get_spc_mesoscale_discussions`, and tactical egress timing.\n\n"
     "CROSS-SESSION MEMORY & PERSISTENCE MANDATE:\n"
     "1. Location & Geocoded Coordinates: Whenever the user shares a location or address, use `calculate_coordinates_and_address` "
     "to compute exact latitude and longitude. Retain both the address string and computed (latitude, longitude) coordinates "
@@ -117,7 +125,7 @@ domain_instruction = (
     "- Use `get_nws_point_forecast` to fetch official NWS forecasts for specific event dates and lat/long coordinates.\n"
     "- Use `get_nws_active_alerts` to query real-time NWS warnings and advisories using stored coordinates or location.\n"
     "- Use `get_spc_mesoscale_discussions` to check active NOAA SPC Mesoscale Discussions, perform boundary polygon checks, and translate discussions into crowd safety guidance.\n"
-    "- Use `save_event_safeguard` to persist address, coordinates, structure type, and risks to Firestore.\n"
+    "- Use `save_event_safeguard` to persist address, coordinates, structure type, and risks to Firestore.\n- When an event date is outside the 7-day NWS window (months in advance), use `get_climatological_risk_profile` to query 15-year percentile ranges (P10/Median/P90), annual envelope position, and NOAA CPC ENSO (El Niño / La Niña) teleconnections to advise on site preparedness (flooring/mud, heat, wind ballasting, cold).\n"
     "- Use `get_event_safeguards` to retrieve saved event records.\n"
     "- Use `generate_event_safety_video` to generate short animated weather safety and hazard advisory videos for outdoor events using Google's Omni model (gemini-omni-flash-preview) in the global region."
 )
@@ -882,6 +890,60 @@ def get_event_safeguards(location: str = "") -> str:
     return f"Retrieved {len(results)} event safeguard(s) from Firestore:\n\n" + "\n\n".join(output)
 
 
+
+async def get_climatological_risk_profile(
+    target_date: str,
+    latitude: float = None,
+    longitude: float = None,
+    location: str = "",
+    event_type: str = "Outdoor Event",
+    structure_type: str = "Open Air",
+    attendee_count: int = 100,
+) -> str:
+    """Queries 15-year empirical climate observations, annual temperature positioning, and NOAA CPC ENSO (El Niño / La Niña) teleconnections for events scheduled beyond the 7-day NWS forecast window.
+    Computes 10th percentile, median, and 90th percentile ranges for high/low temperatures, precipitation volumes, and structural wind gusts, and delivers an outdoor site preparedness plan (flooring/mud, heat stroke, wind ballast, freeze).
+
+    Args:
+        target_date: Target event date in YYYY-MM-DD format (e.g. 2026-08-13).
+        latitude: Explicit latitude float (e.g. 32.0008).
+        longitude: Explicit longitude float (e.g. -80.9735).
+        location: Location or venue string if coordinates are not provided.
+        event_type: Type of outdoor event (e.g. Music Festival, Concert, 5K Run, Wedding).
+        structure_type: Structural setup (e.g. Open Air, Open-sided Tent, Enclosed Tent, Stage Scaffolding).
+        attendee_count: Estimated attendance count.
+
+    Returns:
+        Comprehensive Markdown summary with 10th/50th/90th percentile ranges, annual envelope position, ENSO teleconnection analysis, and site preparedness actions.
+    """
+    if location and (latitude is None or longitude is None):
+        try:
+            geo_res = requests.get(
+                f"https://geocoding-api.open-meteo.com/v1/search?name={requests.utils.quote(location)}&count=1",
+                timeout=5,
+            )
+            if geo_res.status_code == 200 and geo_res.json().get("results"):
+                top = geo_res.json()["results"][0]
+                latitude = top["latitude"]
+                longitude = top["longitude"]
+        except Exception:
+            pass
+
+    if latitude is None or longitude is None:
+        latitude, longitude = 32.0008, -80.9735
+
+    from app.climatology import get_climatology_full_report, format_climatology_for_agent
+    report = await get_climatology_full_report(
+        lat=latitude,
+        lon=longitude,
+        target_date_str=target_date,
+        location_name=location,
+        event_type=event_type,
+        structure_type=structure_type,
+        attendee_count=attendee_count,
+    )
+    return format_climatology_for_agent(report)
+
+
 def generate_event_safety_video(prompt: str, tool_context: ToolContext = None) -> str:
     """Generates a short animated event weather safety advisory or hazard video using Google's Omni model (gemini-omni-flash-preview) in the global region.
     Saves the generated video as an artifact via tool_context and uploads the video bytes to public Cloud Storage, returning its public HTTPS URL.
@@ -958,6 +1020,7 @@ root_agent = Agent(
         save_event_safeguard,
         get_event_safeguards,
         generate_event_safety_video,
+        get_climatological_risk_profile,
     ],
     code_executor=sandbox_code_executor,
     after_model_callback=a2ui_callback,

@@ -432,6 +432,143 @@ async def get_hwo(lat: float = 32.0008, lon: float = -80.9735):
             return JSONResponse({"has_hwo": False, "reason": str(e)})
 
 
+
+@app.get("/api/climatology")
+async def get_climatology(
+    lat: float = 32.0008,
+    lon: float = -80.9735,
+    target_date: str = "2026-08-13",
+    location: str = "",
+    attendees: int = 100,
+    structure: str = "Open Air",
+):
+    """Fetches comprehensive long-term climatology, annual temperature curve, ENSO teleconnections, and operational safeguards."""
+    try:
+        from app.climatology import get_climatology_full_report
+        report = await get_climatology_full_report(
+            lat=lat,
+            lon=lon,
+            target_date_str=target_date,
+            location_name=location,
+            structure_type=structure,
+            attendee_count=attendees,
+        )
+        return JSONResponse({"status": "success", "data": report})
+    except Exception as e:
+        return JSONResponse({"status": "error", "reason": str(e)}, status_code=500)
+
+
+@app.get("/api/current-threat")
+async def get_current_threat(
+    lat: float = 32.0008,
+    lon: float = -80.9735,
+    event_date: str = "",
+):
+    """Synthesizes real-time active alerts, point forecast, and CWA briefing to spotlight the immediate primary threat for today's event."""
+    headers = {"User-Agent": "SafeStageWX (event-weather-safeguard/1.0)"}
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        # 1. Fetch active alerts
+        features = []
+        try:
+            al_res = await client.get(f"https://api.weather.gov/alerts/active?point={lat:.4f},{lon:.4f}", headers=headers)
+            if al_res.status_code == 200:
+                features = al_res.json().get("features", [])
+        except Exception:
+            pass
+
+        # 2. Fetch point forecast
+        forecast_period = None
+        cwa = "CHS"
+        try:
+            pts_res = await client.get(f"https://api.weather.gov/points/{lat:.4f},{lon:.4f}", headers=headers)
+            if pts_res.status_code == 200:
+                props = pts_res.json().get("properties", {})
+                cwa = props.get("cwa", "CHS")
+                fc_url = props.get("forecast")
+                if fc_url:
+                    fc_res = await client.get(fc_url, headers=headers)
+                    if fc_res.status_code == 200:
+                        periods = fc_res.json().get("properties", {}).get("periods", [])
+                        if periods:
+                            forecast_period = periods[0]
+        except Exception:
+            pass
+
+        # 3. Synthesize threats
+        active_events = [f.get("properties", {}).get("event", "") for f in features if f.get("properties", {}).get("event")]
+        short_fc = forecast_period.get("shortForecast", "") if forecast_period else ""
+        detailed_fc = forecast_period.get("detailedForecast", "") if forecast_period else ""
+        temp = f"{forecast_period.get('temperature', 85)}°{forecast_period.get('temperatureUnit', 'F')}" if forecast_period else "85°F"
+        wind = forecast_period.get("windSpeed", "10 mph") if forecast_period else "10 mph"
+
+        is_warning = any("Warning" in e for e in active_events)
+        is_watch = any("Watch" in e for e in active_events)
+        is_advisory = any("Advisory" in e or "Statement" in e for e in active_events)
+        
+        has_convective = any(k in short_fc.lower() or k in detailed_fc.lower() for k in ["thunderstorm", "storm", "lightning", "showers"])
+        has_heat = any(k in short_fc.lower() or k in detailed_fc.lower() for k in ["heat", "100", "105", "110"])
+        has_wind = any(k in short_fc.lower() or k in detailed_fc.lower() for k in ["wind", "gust", "breezy", "gale"])
+
+        if is_warning:
+            severity = "CRITICAL"
+            icon = "warning"
+            headline = f"Active NWS Warning: {active_events[0]}"
+            desc = f"Official NWS {active_events[0]} directly affecting venue coordinates. {detailed_fc}"
+            action = "Activate Emergency Action Plan immediately. Direct all attendees to permanent sturdy indoor shelter and halt outdoor performances."
+        elif is_watch:
+            severity = "HIGH"
+            icon = "thunderstorm"
+            headline = f"Active NWS Watch: {active_events[0]}"
+            desc = f"A {active_events[0]} is active for the venue area. Atmosphere is favorable for severe weather development. {detailed_fc}"
+            action = "Brief stage management, stagehands, and security. Stand by for immediate shelter broadcast if warning polygons trigger."
+        elif has_convective:
+            severity = "ELEVATED"
+            icon = "bolt"
+            headline = f"{short_fc} Expected Today"
+            advisory_suffix = f" (Active NWS Advisory: {active_events[0]})" if is_advisory else ""
+            desc = f"{detailed_fc}{advisory_suffix}"
+            action = "Enforce 20-mile lightning shelter trigger (18-min lead time). Maintain continuous live Doppler radar monitoring and secure tent ballasts."
+        elif is_advisory:
+            severity = "ELEVATED"
+            icon = "campaign"
+            headline = f"Active NWS Advisory: {active_events[0]}"
+            desc = f"NWS {active_events[0]} active for venue region. {detailed_fc}"
+            action = "Review venue safety checklists. Monitor live Doppler radar and coastal weather updates."
+        elif has_heat:
+            severity = "ELEVATED"
+            icon = "thermostat"
+            headline = f"High Heat Index & Sun Exposure (High {temp})"
+            desc = f"{detailed_fc}"
+            action = "Provide free hydration refill stations, deploy misting fans, and stage EMS cooling cots for heat exhaustion mitigation."
+        elif has_wind:
+            severity = "ELEVATED"
+            icon = "air"
+            headline = f"Elevated Wind Conditions ({wind})"
+            desc = f"{detailed_fc}"
+            action = "Monitor stage anemometer continuously. Prepare to lower video walls at 30 mph and enforce 35 mph stage canopy cutoff."
+        else:
+            severity = "MONITORING"
+            icon = "check_circle"
+            headline = f"{short_fc or 'Clear Conditions'} (High {temp})"
+            desc = f"{detailed_fc or 'No hazardous weather outlook active. Standard fair weather conditions expected.'}"
+            action = "Maintain standard weather monitoring throughout event hours."
+
+        return JSONResponse({
+            "status": "success",
+            "is_today": True,
+            "severity": severity,
+            "icon": icon,
+            "headline": headline,
+            "description": desc,
+            "action": action,
+            "active_alerts": active_events,
+            "short_forecast": short_fc,
+            "temperature": temp,
+            "wind": wind,
+            "cwa": cwa,
+        })
+
+
 # Serve the chat UI (keep this mount last so /chat wins).
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
