@@ -1,10 +1,11 @@
 [project]
 name = "event-weather-safeguard"
 version = "0.1.0"
-description = ""
+description = "SafeStageWX - AI-Powered Outdoor Event Weather Safeguard & Climatological Risk Engine"
 authors = [
-    {name = "Your Name", email = "your@email.com"},
+    {name = "Felix Scott", email = "mfscott28@gmail.com"},
 ]
+license = {text = "Proprietary - Source Available (All Rights Reserved)"}
 
 dependencies = [
     "google-adk[gcp,otel-gcp]>=2.6.0,<3.0.0",
