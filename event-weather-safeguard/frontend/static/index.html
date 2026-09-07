@@ -488,7 +488,7 @@
     </button>
     <div class="loc-badge">
       <span class="dot"></span>
-      <span id="hdr-loc-badge">Savannah, GA 32.001° N</span>
+      <span id="hdr-loc-badge">No Venue Configured</span>
     </div>
   </div>
 </header>
@@ -515,26 +515,20 @@
     <!-- 1. TOP: CALL TO ACTION Status Banner with Dynamic Alert Polygon Status -->
     <div class="status-banner" id="main-status-banner">
       <div class="status-header">
-        <span class="status-tag" id="banner-tag" style="background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444; font-weight: 700;">
-          <span class="material-symbols-outlined" style="font-size: 1rem;">warning</span>
-          ⚠️ WARNING POLYGON ACTIVE
+        <span class="status-tag" id="banner-tag" style="background: rgba(14, 165, 233, 0.18); color: #38bdf8; border: 1px solid #0284c7; font-weight: 700;">
+          <span class="material-symbols-outlined" style="font-size: 1rem;">edit_calendar</span>
+          🗓️ EVENT SETUP REQUIRED
         </span>
-        <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">Live Alert Sync</span>
+        <span id="banner-time" style="font-size: 0.75rem; color: #cbd5e1;">SafeStageWX Ready</span>
       </div>
-      <div class="status-title" id="banner-event-title">Wilmington Island Venue (Savannah, GA)</div>
-      <div class="status-sub" id="banner-event-sub">501 Wilmington Island Rd • Aug 13, 2026 ~6:30 PM EDT • 100 Guests</div>
-      <div id="active-alerts-list" style="margin-top: 0.5rem; font-size: 0.82rem; color: #fee2e2; background: rgba(0,0,0,0.35); padding: 0.4rem 0.6rem; border-radius: 8px;">
-        🚨 <strong>Active NWS Warnings at Venue (32.001° N, -80.974° W):</strong> Severe Thunderstorm Warning • Extreme Heat Warning
+      <div class="status-title" id="banner-event-title">No Event Configured</div>
+      <div class="status-sub" id="banner-event-sub">Click "Configure Event" to enter venue address, event date, and expected attendees.</div>
+      <div id="active-alerts-list" style="display: none; margin-top: 0.5rem; font-size: 0.82rem; color: #fee2e2; background: rgba(0,0,0,0.35); padding: 0.4rem 0.6rem; border-radius: 8px;">
       </div>
 
       <!-- Actionable Call To Action Recommendation Box -->
-      <div id="call-to-action-box" style="margin-top: 0.5rem; font-size: 0.83rem; color: #fef9c3; background: rgba(234, 179, 8, 0.18); border: 1px solid #facc15; padding: 0.65rem 0.75rem; border-radius: 8px; font-weight: 500; line-height: 1.45;">
-        <span style="color: #fef08a; font-weight: 700;">📢 RECOMMENDED SAFETY ACTION:</span><br>
-        💧 <strong style="color: #ffffff;">Heat Safety:</strong> Direct guests to stay in cool shaded/indoor areas and provide free hydration/water stations to prevent heat stroke.<br>
-        ⚡ <strong style="color: #ffffff;">Severe Weather / Lightning:</strong> Direct guests to permanent indoor sturdy shelter and prepare PA broadcast.
-        <div id="afd-cta-takeaway" style="margin-top: 0.35rem; border-top: 1px dashed rgba(234, 179, 8, 0.4); padding-top: 0.35rem; font-size: 0.80rem; color: #fef08a;">
-          📝 <strong>NWS Discussion Highlight:</strong> Loading local meteorologist briefing...
-        </div>
+      <div id="call-to-action-box" style="margin-top: 0.5rem; font-size: 0.83rem; color: #f1f5f9; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255,255,255,0.15); padding: 0.65rem 0.75rem; border-radius: 8px; font-weight: 500; line-height: 1.45;">
+        ℹ️ <strong style="color: #38bdf8;">Configure Event:</strong> Enter your venue address and event date to begin live radar sweeps, NWS warning polygon tracking, and climatological risk modeling.
       </div>
     </div>
     
@@ -740,14 +734,14 @@
         <!-- Star Marker Overlay -->
         <div class="star-marker" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%); pointer-events: none; z-index: 10; display: flex; flex-direction: column; align-items: center; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));">
           <div style="background: #1e293b; color: #fbbf24; padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; margin-bottom: 2px; border: 1px solid #f59e0b; display: flex; align-items: center; gap: 0.2rem;">
-            <span id="star-pin-badge">⭐ 501 Wilmington Island Rd</span>
+            <span id="star-pin-badge">⭐ Venue Location</span>
           </div>
           <span class="material-symbols-outlined" style="font-size: 2.4rem; color: #f59e0b; font-variation-settings: 'FILL' 1;">star</span>
         </div>
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.4rem;">
-        <span id="venue-address-display">⭐ 501 Wilmington Island Road, Savannah, GA 31410 (32.001° N, -80.974° W)</span>
+        <span id="venue-address-display">⭐ No venue address configured</span>
         <button onclick="document.getElementById('radar-iframe').src=document.getElementById('radar-iframe').src" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:0.75rem; display:flex; align-items:center; gap:0.2rem;">
           <span class="material-symbols-outlined" style="font-size:0.9rem;">refresh</span>
           Refresh Radar
@@ -896,7 +890,7 @@
     <div class="tool-card">
       <div class="tool-title" id="tab3-venue-title">
         <span class="material-symbols-outlined" style="color: var(--accent);">location_on</span>
-        501 Wilmington Island Road, Savannah, GA 31410
+        No Venue Configured
       </div>
       <div class="map-box" style="position: relative;">
         <iframe id="tab3-venue-iframe" src="https://www.openstreetmap.org/export/embed.html?bbox=-80.9850%2C31.9940%2C-80.9620%2C32.0080&amp;layer=mapnik&amp;marker=32.0008%2C-80.9735"></iframe>
@@ -960,7 +954,7 @@
         <div class="tool-row" style="gap: 0.5rem;">
           <div style="flex: 1;">
             <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">ATTENDEES</label>
-            <input type="number" id="attendees-count" class="tool-input" value="100" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
+            <input type="number" id="attendees-count" class="tool-input" value="" placeholder="e.g. 100" style="width: 100%; box-sizing: border-box;" oninput="calculateEvacTime()">
           </div>
           <div style="flex: 1;">
             <label style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 2px;">ALERT / PA TIME</label>
@@ -1083,12 +1077,12 @@
     <form onsubmit="handleEventSetupSubmit(event)" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.8rem;">
       <div>
         <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EVENT NAME / TYPE</label>
-        <input type="text" id="setup-title" class="tool-input" style="width: 100%; box-sizing: border-box;" value="Wilmington Island Reception" placeholder="e.g. Wedding, Concert, Festival" required>
+        <input type="text" id="setup-title" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. Wedding, Concert, 5K Race, Festival" required>
       </div>
 
       <div>
         <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">VENUE ADDRESS / LOCATION</label>
-        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="501 Wilmington Island Road, Savannah, GA" placeholder="e.g. Street Address, City, State" required>
+        <input type="text" id="setup-address" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. Street Address, City, State or Venue Name" required>
       </div>
 
       <div style="display: flex; gap: 0.6rem;">
@@ -1098,13 +1092,13 @@
         </div>
         <div style="flex: 1;">
           <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">START TIME</label>
-          <input type="time" id="setup-time" class="tool-input" style="width: 100%; box-sizing: border-box;" value="18:30" required>
+          <input type="time" id="setup-time" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="--:--">
         </div>
       </div>
 
       <div>
         <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EXPECTED ATTENDEES</label>
-        <input type="number" id="setup-guests" class="tool-input" style="width: 100%; box-sizing: border-box;" value="100" placeholder="Number of guests" required>
+        <input type="number" id="setup-guests" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. 150">
       </div>
 
       <button type="submit" id="setup-submit-btn" class="btn-primary" style="margin-top: 0.4rem; padding: 0.75rem; justify-content: center; font-size: 0.95rem;">
@@ -1486,7 +1480,7 @@ Please import and acknowledge these parameters for future decision making and ev
 
   function exportSafetyReport() {
     const venueName = currentVenueAddress ? currentVenueAddress.split(',')[0] : "Event Venue";
-    const address = `${currentVenueAddress || "501 Wilmington Island Road, Savannah, GA"} (${currentLat.toFixed(3)}° N, ${currentLon.toFixed(3)}° W)`;
+    const address = (currentVenueAddress && currentLat != null && currentLon != null) ? `${currentVenueAddress} (${currentLat.toFixed(3)}° N, ${currentLon.toFixed(3)}° W)` : (currentVenueAddress || "Venue Location Unspecified");
     const timestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
     
     const count = document.getElementById('attendees-count')?.value || 100;
@@ -1693,9 +1687,9 @@ Please import and acknowledge these parameters for future decision making and ev
     document.getElementById('event-setup-modal').style.display = 'none';
   }
 
-  let currentLat = 32.0008;
-  let currentLon = -80.9735;
-  let currentVenueAddress = "501 Wilmington Island Road, Savannah, GA";
+  let currentLat = null;
+  let currentLon = null;
+  let currentVenueAddress = "";
 
   
   // ==================== SEASONAL HAZARD SYNTHESIZER ====================
@@ -1769,6 +1763,49 @@ Please import and acknowledge these parameters for future decision making and ev
     const qBtn4 = document.getElementById('quick-prompt-btn-4');
     const chatInput = document.getElementById('chat-input');
     const shortLoc = (address || "").split(',')[0] || address || "Venue";
+    const guestsDisplay = (guests && guests > 0) ? `${guests} guests` : "attendees";
+    const guestsTitle = (guests && guests > 0) ? `${guests} Guests` : "Attendees";
+
+    if (!address) {
+      if (agentMsg) {
+        agentMsg.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 0.3rem;">
+            <div style="font-size: 0.88rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 0.35rem;">
+              <span class="material-symbols-outlined" style="font-size: 1.05rem;">security</span>
+              SafeStageWX AI Safety Assistant
+            </div>
+            <span style="background: rgba(14, 165, 233, 0.12); color: var(--accent); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 6px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700;">
+              ✨ Ready to Assist
+            </span>
+          </div>
+          <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-primary);">
+            Welcome to <strong>SafeStageWX</strong>. Please configure your event details using the <strong>"Configure Event"</strong> button above to activate location-specific weather monitoring, 15-year climatological distributions, and crowd evacuation protocols.<br><br>
+            You can also ask me general questions about outdoor event weather safety, structural wind limits, or emergency action plans anytime!
+          </div>
+        `;
+      }
+      if (promptsIcon) promptsIcon.innerText = "help";
+      if (promptsHeader) promptsHeader.innerText = "Recommended Getting Started Questions";
+      if (qBtn1) {
+        qBtn1.onclick = () => sendQuickPrompt("How does SafeStageWX help event organizers manage weather risks?");
+        qBtn1.innerHTML = `<span>🛡️ How does SafeStageWX protect outdoor events?</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn2) {
+        qBtn2.onclick = () => sendQuickPrompt("What are the standard structural wind thresholds and ballast guidelines under ANSI E1.21?");
+        qBtn2.innerHTML = `<span>💨 What are ANSI E1.21 stage wind thresholds?</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn3) {
+        qBtn3.onclick = () => sendQuickPrompt("How do I calculate crowd evacuation lead times and shelter triggers for an outdoor festival?");
+        qBtn3.innerHTML = `<span>⏱️ How to calculate crowd evacuation lead times?</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (qBtn4) {
+        qBtn4.style.display = "flex";
+        qBtn4.onclick = () => sendQuickPrompt("What are key lightning safety protocols and the 30-minute all-clear rule for outdoor stages?");
+        qBtn4.innerHTML = `<span>⚡ Lightning safety rules and the 30-minute all-clear</span><span class="material-symbols-outlined">send</span>`;
+      }
+      if (chatInput) chatInput.placeholder = "Ask about outdoor event weather safety, wind ballasts, or emergency planning...";
+      return;
+    }
 
     if (daysUntil > 7) {
       // ==================== HORIZON 1: LONG-TERM CLIMATOLOGY (> 7 DAYS OUT) ====================
@@ -1906,6 +1943,31 @@ Please import and acknowledge these parameters for future decision making and ev
 
   // ==================== DYNAMIC DATE & UI MODE CONTROLLER ====================
   async function applyEventDateAndUIMode(date, title, address, guests) {
+    if (!address) {
+      const bannerTitle = document.getElementById("banner-event-title");
+      const bannerSub = document.getElementById("banner-event-sub");
+      const bannerTag = document.getElementById("banner-tag");
+      const bannerTime = document.getElementById("banner-time");
+      const ctaBox = document.getElementById("call-to-action-box");
+      const alertsList = document.getElementById("active-alerts-list");
+
+      if (bannerTitle) bannerTitle.innerText = "No Event Configured";
+      if (bannerSub) bannerSub.innerText = "Click \"Configure Event\" to enter venue address, event date, and expected attendees.";
+      if (bannerTag) {
+        bannerTag.style.background = "rgba(14, 165, 233, 0.18)";
+        bannerTag.style.color = "#38bdf8";
+        bannerTag.style.borderColor = "#0284c7";
+        bannerTag.innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem;">edit_calendar</span> 🗓️ EVENT SETUP REQUIRED`;
+      }
+      if (bannerTime) bannerTime.innerText = "SafeStageWX Ready";
+      if (alertsList) alertsList.style.display = "none";
+      if (ctaBox) {
+        ctaBox.innerHTML = `ℹ️ <strong style="color: #38bdf8;">Configure Event:</strong> Enter your venue address and event date to begin live radar sweeps, NWS warning polygon tracking, and climatological risk modeling.`;
+      }
+      updateAIAssistantForDateHorizon(0, date, "", "", 0, "");
+      return;
+    }
+
     const today = new Date();
     today.setHours(12, 0, 0, 0);
     const evtDate = new Date(date + "T12:00:00");
@@ -2019,7 +2081,7 @@ Please import and acknowledge these parameters for future decision making and ev
     const address = document.getElementById('setup-address').value.trim();
     const date = document.getElementById('setup-date').value;
     const time = document.getElementById('setup-time').value;
-    const guests = parseInt(document.getElementById('setup-guests').value) || 100;
+    const guests = parseInt(document.getElementById('setup-guests').value) || 0;
 
     const todayStr = new Date().toISOString().split('T')[0];
     if (!date || date < todayStr) {
@@ -2065,7 +2127,9 @@ Please import and acknowledge these parameters for future decision making and ev
 
     // Update Status Banner
     document.getElementById('banner-event-title').innerText = `${title} (${shortLoc})`;
-    document.getElementById('banner-event-sub').innerText = `${address} • ${date} @ ${time} • ${guests} Guests`;
+    const guestsText = (guests && guests > 0) ? ` • ${guests} Guests` : "";
+    const timeText = time ? ` @ ${time}` : "";
+    document.getElementById('banner-event-sub').innerText = `${address} • ${date}${timeText}${guestsText}`;
 
     // Update Tab 3 Venue Map Title & OpenStreetMap iframe
     const tab3Title = document.getElementById('tab3-venue-title');
@@ -2082,7 +2146,7 @@ Please import and acknowledge these parameters for future decision making and ev
     // AI Assistant Tab 2 welcome message updated dynamically in applyEventDateAndUIMode
 
     // Update Attendee Count in Lead Time Calculator & recalculate
-    document.getElementById('attendees-count').value = guests;
+    document.getElementById('attendees-count').value = guests > 0 ? guests : "";
     calculateEvacTime();
 
     // Apply Climatological Summary or Live Threat Monitor based on date
@@ -2608,7 +2672,7 @@ Please import and acknowledge these parameters for future decision making and ev
     const address = evt.address || "Location";
     const date = evt.date || "";
     const time = evt.time || "";
-    const guests = evt.guests || 100;
+    const guests = parseInt(evt.guests) || 0;
     currentVenueAddress = address;
 
     if (evt.lat && evt.lon) {
@@ -2656,7 +2720,9 @@ Please import and acknowledge these parameters for future decision making and ev
 
     // Update Status Banner
     document.getElementById('banner-event-title').innerText = `${title} (${shortLoc})`;
-    document.getElementById('banner-event-sub').innerText = `${address} • ${date} @ ${time} • ${guests} Guests`;
+    const guestsText = (guests && guests > 0) ? ` • ${guests} Guests` : "";
+    const timeText = time ? ` @ ${time}` : "";
+    document.getElementById('banner-event-sub').innerText = `${address} • ${date}${timeText}${guestsText}`;
 
     // Update Tab 3 Venue Map Title & OpenStreetMap iframe
     const tab3Title = document.getElementById('tab3-venue-title');
@@ -2673,7 +2739,7 @@ Please import and acknowledge these parameters for future decision making and ev
     // AI Assistant Tab 2 welcome message updated dynamically in applyEventDateAndUIMode
 
     // Update Attendee Count
-    document.getElementById('attendees-count').value = guests;
+    document.getElementById('attendees-count').value = guests > 0 ? guests : "";
     calculateEvacTime();
 
     // Apply Climatological Summary or Live Threat Monitor based on date
@@ -2696,15 +2762,21 @@ Please import and acknowledge these parameters for future decision making and ev
     if (saved) {
       try {
         const evt = JSON.parse(saved);
+        // Clear legacy Savannah / Wilmington Island defaults if present
+        if (!evt.address || evt.address.includes("Wilmington Island") || (evt.title && evt.title.includes("Wilmington"))) {
+          localStorage.removeItem('safestagewx_event');
+          openEventSetupModal();
+          return;
+        }
         if (!evt.date || evt.date < todayStr) {
           evt.date = todayStr;
           localStorage.setItem('safestagewx_event', JSON.stringify(evt));
         }
         document.getElementById('setup-title').value = evt.title || '';
         document.getElementById('setup-address').value = evt.address || '';
-        document.getElementById('setup-date').value = evt.date || '';
+        document.getElementById('setup-date').value = evt.date || todayStr;
         document.getElementById('setup-time').value = evt.time || '';
-        document.getElementById('setup-guests').value = evt.guests || 100;
+        document.getElementById('setup-guests').value = evt.guests || '';
         await renderSavedEventUI(evt);
       } catch (e) {
         openEventSetupModal();
