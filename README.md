@@ -93,7 +93,7 @@ SafeStageWX leverages the full Google Cloud & Vertex AI Agent Development Kit (A
 
 ## 📄 License & Intellectual Property
 
-Copyright © 2026 Felix Scott (felix1028). All Rights Reserved.
+Copyright © 2026 Mariana Scott (felix1028). All Rights Reserved.
 
 This project is licensed under a **Proprietary / Source-Available License**. 
 - **Permitted**: Public viewing, cloning, and local execution for personal evaluation, peer review, academic study, and hackathon judging (including the Google Cloud / Build with Gemini Challenge).
