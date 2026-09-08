@@ -61,6 +61,11 @@ output_instruction = (
   4. ⏱️ Operational Decision Triggers & Safety Thresholds (e.g. 20 mph wind advisory, 35 mph shutdown, 8-mile lightning hold)
   5. 📢 Pre-Scripted Public Address (PA) & Staff Announcements
   6. ✅ Preparation Checklist for Event Staff
+- ALWAYS append this exact safety footnote at the very bottom of every Event Action Plan or weather safety response:
+  "---
+  ⚠️ **Important Safety Notice:**
+  • **Not an Official Source:** SafeStageWX is an advisory planning aid, not a replacement for official NOAA National Weather Service dispatches or emergency management orders.
+  • **Liability & Terms:** Life-safety decisions must always follow official authorities. Provided 'as is' — see the [License & Limitation of Liability](https://github.com/felix1028/buildwithgemini-safestagewx/blob/main/LICENSE) for full terms."
 """
 )
 

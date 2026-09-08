@@ -1042,6 +1042,17 @@
     </div>
 
   </div>
+  <!-- Persistent Dashboard Safety & Liability Footer -->
+  <footer style="margin: 2rem 0 1.5rem 0; padding: 0.85rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(15, 23, 42, 0.45); border-radius: 8px; font-size: 0.74rem; color: var(--text-secondary); line-height: 1.5;">
+    <div style="font-weight: 800; color: #facc15; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+      <span class="material-symbols-outlined" style="font-size: 1rem; color: #facc15;">warning</span>
+      <span>Important Safety Notice</span>
+    </div>
+    <ul style="margin: 0; padding-left: 1.2rem; list-style-type: disc;">
+      <li style="margin-bottom: 0.25rem;"><strong style="color: #ffffff;">Not an Official Source:</strong> SafeStageWX is an advisory planning aid, not a replacement for official NOAA National Weather Service dispatches or emergency management orders.</li>
+      <li><strong style="color: #ffffff;">Liability &amp; Terms:</strong> Life-safety decisions must always follow official authorities. Provided &quot;as is&quot; &mdash; see the <a href="https://github.com/felix1028/buildwithgemini-safestagewx/blob/main/LICENSE" target="_blank" style="color: #38bdf8; text-decoration: underline;">License &amp; Limitation of Liability</a> for full terms.</li>
+    </ul>
+  </footer>
 </main>
 
 <!-- PA Script Modal -->
@@ -1103,6 +1114,18 @@
       <div>
         <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary); display: block; margin-bottom: 0.2rem;">EXPECTED ATTENDEES</label>
         <input type="number" id="setup-guests" class="tool-input" style="width: 100%; box-sizing: border-box;" value="" placeholder="e.g. 150">
+      </div>
+
+      <!-- Safety Advisory & Limitation of Liability Callout -->
+      <div style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 8px; padding: 0.65rem 0.8rem; font-size: 0.74rem; line-height: 1.45; color: #f1f5f9; margin-top: 0.15rem;">
+        <div style="font-weight: 800; color: #facc15; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+          <span class="material-symbols-outlined" style="font-size: 1rem; color: #facc15;">warning</span>
+          <span>Important Safety Notice</span>
+        </div>
+        <ul style="margin: 0; padding-left: 1rem; list-style-type: disc;">
+          <li style="margin-bottom: 0.25rem;"><strong style="color: #ffffff;">Not an Official Source:</strong> SafeStageWX is an advisory planning aid, not a replacement for official NOAA National Weather Service dispatches or emergency management orders.</li>
+          <li><strong style="color: #ffffff;">Liability &amp; Terms:</strong> Life-safety decisions must always follow official authorities. Provided &quot;as is&quot; &mdash; see the <a href="https://github.com/felix1028/buildwithgemini-safestagewx/blob/main/LICENSE" target="_blank" style="color: #38bdf8; text-decoration: underline;">License &amp; Limitation of Liability</a> for full terms.</li>
+        </ul>
       </div>
 
       <button type="submit" id="setup-submit-btn" class="btn-primary" style="margin-top: 0.4rem; padding: 0.75rem; justify-content: center; font-size: 0.95rem;">
@@ -1585,6 +1608,12 @@ Please import and acknowledge these parameters for future decision making and ev
           <li><strong>Lightning & Severe Weather:</strong> Immediate evacuation to permanent structures mandated upon storm reaching ${triggerDist}.</li>
           <li><strong>Crowd Egress Corridors:</strong> Keep primary north & south exit gates clear of vehicles for emergency access.</li>
         </ul>
+      </div>
+
+      <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 11px; color: #92400e; line-height: 1.45;">
+        <strong style="color: #b45309;">⚠️ Important Safety Notice:</strong><br>
+        • <strong>Not an Official Source:</strong> SafeStageWX is an advisory planning aid, not a replacement for official NOAA National Weather Service dispatches or emergency management orders.<br>
+        • <strong>Liability &amp; Terms:</strong> Life-safety decisions must always follow official authorities. Provided "as is" &mdash; see the <a href="https://github.com/felix1028/buildwithgemini-safestagewx/blob/main/LICENSE" target="_blank" style="color: #b45309; text-decoration: underline;">License &amp; Limitation of Liability</a> for full terms.
       </div>
 
       <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #94a3b8;">
