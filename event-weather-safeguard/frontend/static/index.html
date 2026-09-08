@@ -2856,18 +2856,18 @@ Please import and acknowledge these parameters for future decision making and ev
             renderA2UI(part.data || part.a2ui, agentMsgEl);
           } else if ((part.kind === 'text' || part.type === 'text') && (part.text)) {
             hasContent = true;
-            const p = document.createElement('p');
-            p.style.margin = '0 0 0.5rem 0';
-            p.style.whiteSpace = 'pre-wrap';
-            p.innerText = part.text;
-            agentMsgEl.appendChild(p);
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'agent-markdown-content';
+            contentDiv.innerHTML = formatMarkdownToHTML(part.text);
+            agentMsgEl.appendChild(contentDiv);
           }
         });
         if (!hasContent) {
-          agentMsgEl.innerText = data.parts.map(p => p.text || '').filter(Boolean).join('\n') || "(No text content returned)";
+          const raw = data.parts.map(p => p.text || '').filter(Boolean).join('\n') || "(No text content returned)";
+          agentMsgEl.innerHTML = formatMarkdownToHTML(raw);
         }
       } else if (data.reply) {
-        agentMsgEl.innerText = data.reply;
+        agentMsgEl.innerHTML = formatMarkdownToHTML(data.reply);
       } else {
         agentMsgEl.innerText = "(No response content returned)";
       }
@@ -2984,6 +2984,103 @@ Please import and acknowledge these parameters for future decision making and ev
       default:
         return null;
     }
+  }
+
+  function formatMarkdownToHTML(rawText) {
+    if (!rawText) return "";
+
+    // 1. Sanitize any legacy <a2ui-json> tags or JSON payload strings
+    let text = rawText.replace(/<\/?(?:a2a_datapart_json|a2ui-json)>/gi, "").trim();
+
+    // If text is a raw JSON payload, extract component text to prevent dumping code
+    if (text.startsWith("{") && text.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed.components && Array.isArray(parsed.components)) {
+          const extracted = [];
+          for (const c of parsed.components) {
+            const comp = c.component || c;
+            if (comp.Text && comp.Text.text) {
+              const val = typeof comp.Text.text === "object" ? (comp.Text.text.literalString || "") : comp.Text.text;
+              if (val) extracted.push(val);
+            }
+          }
+          if (extracted.length > 0) text = extracted.join("\n\n");
+        }
+      } catch (e) {}
+    }
+
+    const lines = text.split(/\r?\n/);
+    let html = "";
+    let inList = false;
+
+    function inlineFormat(str) {
+      return str
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #ffffff; font-weight: 700;">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em style="color: #cbd5e1;">$1</em>')
+        .replace(/`([^`]+)`/g, '<code style="background: rgba(255,255,255,0.12); padding: 1px 4px; border-radius: 4px; font-family: monospace; font-size: 0.88em; color: #38bdf8;">$1</code>');
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Horizontal Rules
+      if (/^(\-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+        if (inList) { html += "</ul>"; inList = false; }
+        html += '<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.15); margin: 0.75rem 0;">';
+        continue;
+      }
+
+      // Headers
+      const h3Match = line.match(/^###\s+(.*)/);
+      if (h3Match) {
+        if (inList) { html += "</ul>"; inList = false; }
+        html += `<h3 style="margin: 0.75rem 0 0.35rem; font-size: 1.05rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 0.3rem;">${inlineFormat(h3Match[1])}</h3>`;
+        continue;
+      }
+      const h2Match = line.match(/^##\s+(.*)/);
+      if (h2Match) {
+        if (inList) { html += "</ul>"; inList = false; }
+        html += `<h2 style="margin: 0.95rem 0 0.45rem; font-size: 1.15rem; font-weight: 800; color: #7dd3fc; border-bottom: 1px solid rgba(125,211,252,0.25); padding-bottom: 0.25rem;">${inlineFormat(h2Match[1])}</h2>`;
+        continue;
+      }
+      const h1Match = line.match(/^#\s+(.*)/);
+      if (h1Match) {
+        if (inList) { html += "</ul>"; inList = false; }
+        html += `<h1 style="margin: 1.1rem 0 0.5rem; font-size: 1.25rem; font-weight: 800; color: #ffffff;">${inlineFormat(h1Match[1])}</h1>`;
+        continue;
+      }
+
+      // Bullet Lists
+      const listMatch = line.match(/^[\*\-]\s+(.*)/);
+      if (listMatch) {
+        if (!inList) { html += '<ul style="margin: 0.35rem 0 0.65rem 1.2rem; padding: 0; list-style-type: disc;">'; inList = true; }
+        html += `<li style="margin-bottom: 0.28rem; line-height: 1.5; color: #f1f5f9;">${inlineFormat(listMatch[1])}</li>`;
+        continue;
+      }
+
+      // Numbered Lists
+      const numMatch = line.match(/^(\d+)\.\s+(.*)/);
+      if (numMatch) {
+        if (inList) { html += "</ul>"; inList = false; }
+        html += `<div style="margin: 0.35rem 0 0.35rem 0.5rem; line-height: 1.5; color: #f1f5f9;"><strong style="color: #38bdf8;">${numMatch[1]}.</strong> ${inlineFormat(numMatch[2])}</div>`;
+        continue;
+      }
+
+      // Empty Lines
+      if (!line.trim()) {
+        if (inList) { html += "</ul>"; inList = false; }
+        continue;
+      }
+
+      // Standard Paragraph
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<p style="margin: 0 0 0.5rem 0; line-height: 1.55; color: #f1f5f9;">${inlineFormat(line)}</p>`;
+    }
+
+    if (inList) html += "</ul>";
+    return html;
   }
 
   function renderA2UI(a2uiData, container) {

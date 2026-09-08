@@ -144,16 +144,14 @@ async def _get_card(client: httpx.AsyncClient) -> AgentCard:
 def _extract_parts(parts: list) -> list[dict]:
     """Turn A2A response parts into structured parts for the chat UI.
 
-    Text parts pass through as {"kind": "text"}. A2UI data parts (tagged
-    application/json+a2ui) become {"kind": "a2ui", "data": <message>} so the UI
-    renders the card; each data part is one A2UI message (beginRendering or
-    surfaceUpdate).
+    Text parts pass through as {"kind": "text"} with wrapper tags sanitized for clean human-readable output.
     """
     out: list[dict] = []
     for p in parts:
         root = getattr(p, "root", p)
         if isinstance(root, TextPart) and getattr(root, "text", None):
-            out.append({"kind": "text", "text": root.text})
+            clean_text = re.sub(r"</?(?:a2a_datapart_json|a2ui-json)>", "", root.text).strip()
+            out.append({"kind": "text", "text": clean_text})
         elif getattr(root, "data", None) is not None:
             meta = getattr(root, "metadata", None) or {}
             mime = meta.get("mimeType") if isinstance(meta, dict) else None

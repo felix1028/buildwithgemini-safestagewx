@@ -49,35 +49,19 @@ sandbox_code_executor = AgentEngineSandboxCodeExecutor(
     agent_engine_resource_name=AGENT_ENGINE_RESOURCE_NAME
 )
 
-schema_manager = A2uiSchemaManager(
-    version="0.8",
-    catalogs=[BasicCatalog.get_config("0.8")],
-)
-
-a2ui_instruction = schema_manager.generate_system_prompt(
-    role_description=(
-        "You are an Event Weather & Climate Safeguard assistant operating under the primary "
-        "mission: **To Protect Life and Property** through timely "
-        "warnings, accurate forecasts, and proactive event preparedness."
-    ),
-    workflow_description="Analyze event safeguard requests, geocode locations, query NWS forecasts & active alerts, manage Firestore records, and emit structured UI cards when appropriate.",
-    ui_description=(
-        "Keep every surface tiny and flat: ONE Card > ONE Column > a few Text rows. "
-        "Never nest a Card inside a Card. "
-        "Use ONLY these components: Card, Column, Row, Text, and Image. Do not use "
-        "Table or Heading (unsupported), or Buttons, actions, or forms (they do "
-        "nothing in adk web). "
-        "You may include one Image component, but only when you have a public https "
-        "URL for the image. Set the Image url to that exact https link. Never point an "
-        "Image at a bare filename, an artifact name, or a non-http(s) path. If you do "
-        "not have a public URL, add a short Text line noting the image instead. "
-        "No markdown in text; use the usageHint property ('h1', 'h2', 'body') for "
-        "headings and emphasis. "
-        "Output ONLY the raw A2UI JSON array — no prose, and never wrap it in "
-        "<a2a_datapart_json> tags or 'kind'/'data'/'metadata' objects."
-    ),
-    include_schema=True,
-    include_examples=True,
+output_instruction = (
+    """OUTPUT FORMATTING & HUMAN-READABILITY MANDATE:
+- ALWAYS provide comprehensive, beautifully organized, human-readable Event Action Plans (EAPs), weather briefings, and safety guidance in clean Markdown format.
+- NEVER output raw JSON, <a2ui-json> tags, component schemas, or code envelopes. Event directors, race coordinators, and stage managers need immediate, professional, plain-English guidance.
+- Use structured Markdown elements: clear section headings (###), bold threat indicators, bullet points, checklists, and clear operational timelines.
+- When asked to draft an Event Action Plan (EAP) or safety plan, structure it into actionable sections:
+  1. 🎯 Executive Risk Summary & Anticipated Threat Level
+  2. 🌡️ Climatological Envelope & Historical Percentiles (Daytime High, Overnight Low, Precipitation Odds, Wind Thresholds)
+  3. 🛡️ Site Safeguards & Course Logistics (Hydration/Heat Stations, Mud/Turf Saturation, Structural Ballasting)
+  4. ⏱️ Operational Decision Triggers & Safety Thresholds (e.g. 20 mph wind advisory, 35 mph shutdown, 8-mile lightning hold)
+  5. 📢 Pre-Scripted Public Address (PA) & Staff Announcements
+  6. ✅ Preparation Checklist for Event Staff
+"""
 )
 
 domain_instruction = (
@@ -1018,7 +1002,7 @@ root_agent = Agent(
         model=MODEL,
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
-    instruction=f"{a2ui_instruction}\n\n{domain_instruction}",
+    instruction=f"{output_instruction}\n\n{domain_instruction}",
     tools=[
         PreloadMemoryTool(),
         get_weather,
@@ -1035,7 +1019,6 @@ root_agent = Agent(
         get_climatological_risk_profile,
     ],
     code_executor=sandbox_code_executor,
-    after_model_callback=a2ui_callback,
     after_agent_callback=generate_memories_callback,
 )
 
